@@ -362,11 +362,20 @@ SELF_TEST_CASES = (
 
 
 def _parsed_description(skill_path: Path) -> str:
-    """The `description` as the host sees it, with YAML's enclosing quotes removed if present."""
+    """The `description` as the host sees it: enclosing YAML quotes removed, `''` unescaped.
+
+    Both steps matter to what this measures. Keeping the delimiters overcounts against the cap by
+    two, which is how the length in the docs was wrong twice. Keeping a literal `''` overcounts by
+    one per apostrophe and -- worse, because it is silent -- makes a required term containing an
+    apostrophe report as missing when the host can see it perfectly well.
+    """
     meta, _ = parse_frontmatter(skill_path.read_text(encoding="utf-8"))
     value = meta.get("description", "")
     if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+        quote = value[0]
         value = value[1:-1]
+        if quote == "'":
+            value = value.replace("''", "'")
     return value
 
 
