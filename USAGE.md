@@ -53,7 +53,7 @@ is the one used to verify the install path in this document.
 
 Two things that do **not** work, both established by testing:
 
-- Skills are not discovered via `--plugin-dir`. That flag is for plugins, not skills.
+- Skills are not discovered via `--plugin-dir`.
 - Skills are not discovered via a relocated `CLAUDE_CONFIG_DIR`.
 
 `~/.claude/skills/` is the path that works.
@@ -290,8 +290,8 @@ Verdict labels blur at the DELETE/REDUCE boundary. In this project's own evaluat
 the model chose substantively the correct scope — it cut the entire proposed dashboard and
 retained a single alert rule on a metric that already existed — and then labelled that outcome
 **REDUCE** where the rubric expected **DELETE**. All six runs in the recorded matrix did this, in
-both arms. Case 06 shows the same effect from the other side: identical protective behaviour in
-every run, with the label diverging from the rubric.
+both arms. Case 06 shows the same effect from the other side: the protective behaviour was
+identical in every run of both arms, and the arms were separated only on the label.
 
 The practical consequence: **treat the named deleted and retained scope as the reviewable output,
 and the label as a summary of it.** If the two disagree, the scope lists are what you should act
