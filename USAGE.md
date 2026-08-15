@@ -75,8 +75,9 @@ is the one used to verify the install path in this document.
 Claude Code 2.1.226, `claude --plugin-dir <clone>` loads the clone as an inline plugin and a live
 session lists `<dir>:codebase-zero` — the nested skill, namespaced to the directory — while the root
 `SKILL.md` is shadowed and `requirement-zero` is absent. Remove `skills/` and the same probe reports
-`requirement-zero` instead. So the flag gives you one skill under a plugin namespace, not the pair
-under their own names, which is why the symlink below is the documented route. An earlier note here
+`requirement-zero` instead. So the flag gives you whatever is under `skills/` — here, Codebase Zero
+alone — under a plugin namespace, and shadows the root `SKILL.md`, rather than the pair under their
+own names. That is why the symlink below is the documented route. An earlier note here
 claimed skills were not discovered via `--plugin-dir` at all; that was tested against an earlier CLI
 and is wrong for this version.
 
