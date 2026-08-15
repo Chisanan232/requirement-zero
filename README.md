@@ -100,8 +100,8 @@ require concrete evidence and appropriate review before anything is dropped.
 
 ## Evaluation
 
-Requirement Zero's published run below. Codebase Zero has its own suite and its own published run:
-[**eval/codebase-zero/**](eval/codebase-zero/).
+Requirement Zero's published run is below; Codebase Zero's is
+[**further down**](#codebase-zero-evaluation).
 
 There is one published run: 36 CLI calls, `claude-sonnet-4-6`, six adversarial cases, two arms
 (baseline and skill-enabled), three runs per cell. Full write-up in
@@ -161,7 +161,40 @@ A static analyzer is better than this at finding unreferenced symbols and should
 overlap plainly, including when to use the other tool instead.
 
 Seven worked audits: [skills/codebase-zero/examples/index.md](skills/codebase-zero/examples/index.md).
-Evaluation: [eval/codebase-zero/](eval/codebase-zero/).
+
+### Codebase Zero evaluation
+
+One published run: 42 CLI calls, `claude-sonnet-4-6`, seven cases, two arms, three runs per cell.
+Full write-up in
+[**eval/codebase-zero/results/2026-08-15-claude-sonnet-4-6.md**](eval/codebase-zero/results/2026-08-15-claude-sonnet-4-6.md);
+design and limitations in [**eval/codebase-zero/README.md**](eval/codebase-zero/README.md).
+
+The skill arm matched the expected verdict on **21/21** runs against the baseline's **17/21** — a
+wider and more consistent gap than the Requirement Zero suite produced. Both halves of the reading
+have to be quoted together:
+
+- **All four baseline misses kept the artifact anyway.** Every one is on a KEEP case, and in every
+  one the baseline chose an adjacent label — DEFER CLEANUP or INVEST — while still concluding the
+  thing stays. Across all 42 runs, **neither arm ever recommended removing or reducing a
+  load-bearing artifact**: zero false rejections, zero guard failures on all three guard cases. The
+  gap is label conformance, not a measured reduction in dangerous behaviour, because no dangerous
+  behaviour occurred in either arm.
+- **On the four removal cases the arms are identical, 12/12 each.** DELETE, CONSOLIDATE, SIMPLIFY and
+  the deliberately hardest case — the orphaned module that only an out-of-repository config value
+  saves — were 3/3 in both arms with no disagreement on any run. This suite measured **no difference
+  at all** in removal decisions.
+- **The skill arm cost more:** output tokens 26,071 → 30,597 (+17.4%), mean latency 26.9 s → 31.5 s.
+  There is no arm that acts on the audit, so the engineering time a correct decision saves is
+  **entirely unmeasured**.
+
+The one real doctrinal difference is on the payment guard whose duplicate counter has not fired in
+fourteen months: the baseline left removal open pending outside evidence, while the skill arm closed
+it from the evidence present — a quiet guard is what a working guard looks like — in 3/3 runs. The
+larger caveat is that the baseline is strong: this model already answers INVEST on the matching engine
+unprompted, so there was little headroom for the skill to show an effect. A weaker model would
+discriminate better, and this run says nothing about one.
+
+Reproducing it: `python3 eval/run_eval.py --profile codebase-zero`.
 
 ## Who it is for
 
