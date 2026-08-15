@@ -129,6 +129,7 @@ references/   supporting methodology in 4 files, loaded only when needed
 examples/     6 worked decisions, one per verdict plus a safety case, and an index
 eval/         the evaluation harness, 6 input cases, and published results
 USAGE.md      installation, triggers, verdicts, safety boundaries, compatibility
+README.md     this file
 LICENSE       MIT
 ```
 
