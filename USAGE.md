@@ -74,3 +74,62 @@ Explicit invocation is useful for a request that sits near the boundary — wher
 not have fired by itself, but you want the requirement challenged before any planning happens.
 It is also how you get a verdict on a *plan* or a ticket breakdown rather than on a single
 feature request.
+
+## When it fires
+
+The frontmatter `description` is the trigger surface. It fires when a request asks to build,
+add, or design something **and** the necessity or scope of that thing has not been established.
+Named categories:
+
+- New features and capabilities
+- Abstractions, interfaces, and plugin systems
+- Dashboards and reporting surfaces
+- Configurability — settings, flags, options
+- Migrations
+- Anything phrased as "we should probably support X"
+
+A tested example. Given:
+
+> We should add a plugin system to our log parser so other teams can add their own formats
+> later.
+
+the skill fired without being named and returned **DEFER**, on the grounds that "no evidence
+found — no team is named, no format is currently blocked, no incident or support request is
+cited. The justification is entirely anticipatory." It cited the rule from `SKILL.md` that a
+plugin point needs a *committed* second consumer — a named consumer with a date — not an
+anticipated one.
+
+That is the shape of request it exists for: a real-sounding requirement whose entire support is
+a prediction.
+
+## When NOT to invoke it
+
+This matters as much as the triggers. A skill that fires on everything is worse than no skill:
+it adds cost and latency to work that was already decided, and it teaches you to ignore its
+output. The `description` excludes three classes explicitly, and
+[references/workflow.md](references/workflow.md) adds the stopping rules.
+
+**Already-validated work.** A requirement that has already been challenged and decided, or one
+that arrives with its evidence attached. Re-litigating a settled decision is its own waste. The
+same applies to mechanical changes with a stated outcome — renames, version bumps, formatting.
+
+**Plain bug fixes.** Restoring intended behaviour is not new scope. Tested: asked about a date
+parser with an off-by-one error on December, the agent replied that requirement-zero does not
+apply — "this is a concrete bug fix with a clear, observable incorrect behavior. Bug fixes are
+explicitly excluded from its scope." The ambiguous case is a large bug fix that implies new
+architecture: fix the bug, and run the discipline on the proposed architecture separately.
+
+**Explicit safety, security, legal, or compliance requirements.** Tested: given "a pen test
+found our login endpoint has no rate limit and we are seeing credential stuffing in
+production", the agent replied that requirement-zero does not apply — "credential stuffing is
+already happening in production, making this a confirmed incident response, not a speculative
+feature. Requirement-zero is explicitly excluded for safety, security, legal, or compliance
+requirements."
+
+Both of those non-trigger answers came from the `description` frontmatter alone, without the
+skill body being loaded. The exclusion is part of the trigger surface, not a rule buried inside
+the method.
+
+**Trivial requests.** Nothing in the skill stops you asking for a verdict on a one-line change,
+but the analysis costs tokens and time (see [Cost](#cost)) and produces nothing you did not
+already know.
