@@ -77,9 +77,10 @@ python3 eval/run_eval.py --runs 1 --case 06 --arm skill
 
 Flags: `--profile requirement-zero|codebase-zero`, `--runs N`, `--case <filename prefix>`,
 `--arm baseline|skill`, and `--self-test` (checks verdict parsing against known-tricky strings for
-both profiles, and checks each skill's `description` is present, within the host's listing cap, and
-still names its load-bearing terms; makes no API calls and costs nothing). Nothing else — this is a
-script, not a platform.
+both profiles, and checks each skill's `description` is present, within the host's listing cap, still
+names its load-bearing terms, and — for Codebase Zero — still carries its protective carve-back
+clause with every category inside that clause rather than merely somewhere in the field; makes no API
+calls and costs nothing). Nothing else — this is a script, not a platform.
 
 Each profile carries its own skill path, case directory, prompt, verdict vocabulary, and definition
 of a false rejection, so adding the second skill did not require a second copy of the harness. Three
@@ -291,7 +292,10 @@ start if any profile lists a verdict before one it is a prefix of, so `DEFER` ah
 
 Both make no API calls and cost nothing. Run the self-test after touching the parser, and after
 editing either skill's `description` — the description is the trigger surface, so a category dropped
-from it cannot be recovered by anything in the skill body, and `--self-test` is what notices.
+from it cannot be recovered by anything in the skill body, and `--self-test` is what notices. The
+category checks for Codebase Zero are anchored to the carve-back clause rather than run against the
+whole field, because a term can appear elsewhere in the description while the clause that uses it has
+been reworded or dropped.
 
 ## Limitations
 
