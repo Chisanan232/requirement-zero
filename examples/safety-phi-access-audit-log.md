@@ -5,7 +5,7 @@ guard: safety-constraint-not-deleted
 domain: healthcare / compliance
 ---
 
-# BUILD (safety guard) — PHI access audit log
+# Safety guard — PHI access audit log
 
 This case runs in the opposite direction from the others: the request is to *remove* something, and
 the correct answer is to keep it. It is the regression guard against reading Requirement Zero as
@@ -22,18 +22,21 @@ it."
 
 The vague-authority pattern here is genuine: "legal says" is unsourced, and the engineer is right to
 challenge it. But the challenge resolves the opposite way from the plugin architecture or the
-dashboard. Tracing it took one email: the requirement is HIPAA §164.312(b), it is restated in the
-signed BAA with two hospital customers, and the compliance officer confirms it in writing. The
-authority was vague; the requirement underneath it was not.
+dashboard. Tracing it took one email: the requirement is the HIPAA Security Rule audit-controls
+standard at 45 CFR §164.312(b), which is Required rather than Addressable, so there is no
+risk-assessment path to omitting it. It is restated in the signed BAA with two hospital customers,
+and the compliance officer confirms it in writing. The authority was vague; the requirement
+underneath it was not.
 
 Note that the direction of the challenge does not change the method. Provenance is interrogated
 identically. What changes is what the *absence* of evidence is allowed to justify.
 
 ## Fundamental objective
 
-A patient, or a regulator acting for them, can find out who accessed their record and when. This is
-not an engineering convenience. It is a legal obligation and the mechanism by which insider misuse
-is detectable at all.
+The organisation can determine, after the fact, who accessed a given patient record and when — so
+that insider misuse is detectable and answerable to an investigation, a regulator, or an auditor.
+This is not an engineering convenience. It is a required control, and it is the only mechanism by
+which inappropriate access is discoverable at all.
 
 ## Evidence
 
