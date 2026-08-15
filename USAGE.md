@@ -100,8 +100,10 @@ ln -s ~/.claude/skills/requirement-zero/skills/codebase-zero ~/.claude/skills/co
 ```
 
 Both skills then appear, and `git pull` still updates both, because the symlink points into the
-clone. This was verified end to end: the agent listed `codebase-zero`, loaded its `SKILL.md` body,
-and read a file from its `references/` directory through the symlink.
+clone. This was verified end to end — the agent listed `codebase-zero`, loaded its `SKILL.md` body,
+and read a file from its `references/` directory through the symlink — with the same layout under a
+throwaway `CLAUDE_CONFIG_DIR` rather than under `~/.claude` itself, so the symlink and the
+`references/` traversal are confirmed and the literal path above is not.
 
 Copying works equally well if you would rather not use a symlink:
 
