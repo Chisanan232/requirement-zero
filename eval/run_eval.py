@@ -5,9 +5,9 @@ Two arms, identical user prompts. The only difference is that the `skill` arm ge
 repository's SKILL.md appended to the system prompt. Standard library only; shells out to
 the `claude` CLI.
 
-Runs are isolated with `--safe-mode`, which stops CLAUDE.md discovery from the working directory
-upward. Without it an ambient project CLAUDE.md is injected into BOTH arms; see eval/README.md
-"Isolation".
+Runs are isolated with `--safe-mode` (no ambient CLAUDE.md discovery from the working directory)
+and `--tools ""` (tools removed from the model's schema). Both matter for validity: see
+eval/README.md "Isolation".
 
     python3 eval/run_eval.py                      # full matrix: 6 cases x 2 arms x 3 runs
     python3 eval/run_eval.py --runs 1 --case 01   # one cheap pair of calls
@@ -30,7 +30,8 @@ RESULTS_DIR = EVAL_DIR / "results"
 SKILL_PATH = REPO_ROOT / "SKILL.md"
 
 VERDICTS = ("BUILD HARD", "DELETE", "REDUCE", "DEFER", "BUILD")  # BUILD HARD first: longest match wins
-UNPARSEABLE = "UNPARSEABLE"
+UNPARSEABLE = "UNPARSEABLE"  # model answered, but no readable VERDICT line: a real non-match
+ERRORED = "ERRORED"          # CLI/harness failure: excluded from match-rate denominators
 FALSE_REJECTIONS = ("DELETE", "DEFER")  # wrong when the expected verdict is BUILD or BUILD HARD
 CALL_TIMEOUT_S = 300
 
@@ -141,7 +142,9 @@ def call_claude(prompt: str, system_prompt: str | None) -> dict[str, object]:
         "--output-format", "json",
         "--model", "sonnet",
         "--max-turns", "1",
-        "--allowed-tools", "",
+        # --tools "" removes tools from the model's schema. --allowed-tools "" only withholds
+        # permission, which leaves the tools visible and turns an attempted call into a failed run.
+        "--tools", "",
         # --safe-mode stops CLAUDE.md discovery from CWD upward. Without it an ambient project
         # CLAUDE.md is injected into BOTH arms; see eval/README.md "Isolation".
         "--safe-mode",
@@ -170,13 +173,27 @@ def run_once(case: dict[str, object], arm: str, skill: str, run_index: int) -> d
         PROMPT_TEMPLATE.format(body=case["body"]), skill if arm == "skill" else None
     )
     if "error" in outcome:
-        record.update(error=outcome["error"], verdict=UNPARSEABLE, matched=False)
+        record.update(error=outcome["error"], verdict=ERRORED, matched=False)
         return record
 
     payload: dict = outcome["payload"]  # type: ignore[assignment]
     text = payload.get("result") or ""
     usage = payload.get("usage") or {}
     model_usage = payload.get("modelUsage") or {}
+    # A CLI-level failure (is_error, or a missing/empty result -- e.g. the turn was consumed by an
+    # attempted tool call) is an ERRORED run, not a wrong answer. Scoring it as UNPARSEABLE would
+    # silently charge the arm with a non-match for a harness/CLI problem.
+    if payload.get("is_error") or not text.strip():
+        record.update(
+            error=f"CLI reported failure: subtype={payload.get('subtype')!r} "
+                  f"is_error={payload.get('is_error')!r} result_empty={not text.strip()}",
+            verdict=ERRORED, matched=False,
+            input_tokens=usage.get("input_tokens"), output_tokens=usage.get("output_tokens"),
+            cost_usd=payload.get("total_cost_usd"), duration_ms=payload.get("duration_ms"),
+            model=",".join(sorted(model_usage)) or None, is_error=payload.get("is_error"),
+            response_text=text,
+        )
+        return record
     verdict = extract_verdict(text)
     record.update(
         # Only whitelisted fields are kept: no session ids, uuids, or local paths.
@@ -216,31 +233,40 @@ def summarise(records: list[dict[str, object]], cases: list[dict[str, object]], 
         }
         for arm in arms:
             runs = [r for r in records if r["case"] == case["file"] and r["arm"] == arm]
+            scored = [r for r in runs if r["verdict"] != ERRORED]  # errored runs are not answers
             row[arm] = {
                 "verdicts": [r["verdict"] for r in runs],
-                "majority": majority([str(r["verdict"]) for r in runs]) if runs else None,
-                "matches": sum(1 for r in runs if r["matched"]),
+                "majority": majority([str(r["verdict"]) for r in scored]) if scored else None,
+                "matches": sum(1 for r in scored if r["matched"]),
+                "scored_runs": len(scored),
+                "errored_runs": len(runs) - len(scored),
                 "runs": len(runs),
                 "mean_output_tokens": round(
-                    sum(r.get("output_tokens") or 0 for r in runs) / len(runs), 1
-                ) if runs else None,
+                    sum(r.get("output_tokens") or 0 for r in scored) / len(scored), 1
+                ) if scored else None,
             }
         per_case.append(row)
 
     totals = {}
     for arm in arms:
         runs = [r for r in records if r["arm"] == arm]
-        guard = [r for r in runs if r["case"].startswith("06")]  # type: ignore[union-attr]
+        scored = [r for r in runs if r["verdict"] != ERRORED]
+        guard = [r for r in scored if r["case"].startswith("06")]  # type: ignore[union-attr]
+        matches = sum(1 for r in scored if r["matched"])
         totals[arm] = {
             "runs": len(runs),
-            "matches": sum(1 for r in runs if r["matched"]),
-            "match_rate": round(sum(1 for r in runs if r["matched"]) / len(runs), 3) if runs else None,
-            "false_rejections": sum(1 for r in runs if r.get("false_rejection")),
-            "unparseable": sum(1 for r in runs if r["verdict"] == UNPARSEABLE),
-            "errors": sum(1 for r in runs if "error" in r),
-            "named_deleted_scope": sum(1 for r in runs if r.get("named_deleted_scope")),
+            # Match rate is over SCORED runs only: an ERRORED run is a harness/CLI failure, not a
+            # wrong answer, so it must not silently penalise the arm.
+            "scored_runs": len(scored),
+            "errored_runs": len(runs) - len(scored),
+            "matches": matches,
+            "match_rate": round(matches / len(scored), 3) if scored else None,
+            "false_rejections": sum(1 for r in scored if r.get("false_rejection")),
+            "unparseable": sum(1 for r in scored if r["verdict"] == UNPARSEABLE),
+            "named_deleted_scope": sum(1 for r in scored if r.get("named_deleted_scope")),
+            "guard_scored_runs": len(guard),
             "guard_failures": sum(1 for r in guard if r.get("false_rejection")),
-            "total_output_tokens": sum(r.get("output_tokens") or 0 for r in runs),
+            "total_output_tokens": sum(r.get("output_tokens") or 0 for r in scored),
             "total_cost_usd": round(sum(r.get("cost_usd") or 0.0 for r in runs), 4),
         }
     return {"per_case": per_case, "totals": totals}
@@ -254,17 +280,22 @@ def print_table(summary: dict, arms: list[str]) -> None:
         for arm in arms:
             a = row[arm]
             print(f"    {arm:<9} {', '.join(a['verdicts']) or '-':<40} majority={a['majority']}")
-    print("\nAggregate")
-    print(f"  {'arm':<9} {'match':<8} {'rate':<7} {'false-rej':<10} {'unparse':<8} "
+    print("\nAggregate  (match rate is over SCORED runs; ERRORED runs are excluded)")
+    print(f"  {'arm':<9} {'match':<8} {'rate':<7} {'false-rej':<10} {'unparse':<8} {'errored':<8} "
           f"{'guard-fail':<11} {'out-tok':<8} {'cost$':<8}")
     for arm, t in summary["totals"].items():
-        print(f"  {arm:<9} {str(t['matches']) + '/' + str(t['runs']):<8} {str(t['match_rate']):<7} "
-              f"{t['false_rejections']:<10} {t['unparseable']:<8} {t['guard_failures']:<11} "
+        print(f"  {arm:<9} {str(t['matches']) + '/' + str(t['scored_runs']):<8} "
+              f"{str(t['match_rate']):<7} {t['false_rejections']:<10} {t['unparseable']:<8} "
+              f"{t['errored_runs']:<8} {t['guard_failures']:<11} "
               f"{t['total_output_tokens']:<8} {t['total_cost_usd']:<8}")
+    for arm, t in summary["totals"].items():
+        if t["errored_runs"]:
+            print(f"\n  !!! {arm} arm had {t['errored_runs']} ERRORED run(s) excluded from the "
+                  f"match rate. Investigate before quoting any number. !!!")
     for arm, t in summary["totals"].items():
         if t["guard_failures"]:
             print(f"\n  *** GUARD FAILED: {arm} arm produced DELETE/DEFER on the safety case "
-                  f"{t['guard_failures']} time(s). ***")
+                  f"{t['guard_failures']} of {t['guard_scored_runs']} scored run(s). ***")
 
 
 def main() -> int:
