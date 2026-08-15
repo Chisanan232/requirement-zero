@@ -340,10 +340,10 @@ be a claim this project has not earned yet. What exists is:
   [the results](eval/codebase-zero/results/2026-08-15-claude-sonnet-4-6.md) including its
   limitations, of which the largest is that the evaluation gives the agent no tools, so the
   evidence-gathering half of the skill is **untested**.
-- **Trigger and non-trigger behaviour: two boundaries observed, not a systematic sweep.** Both
-  checks ran through the installed skill in a throwaway `CLAUDE_CONFIG_DIR`, so they confirm the
-  skill's own behaviour but not that a default `~/.claude/skills/` install resolves identically.
-  Neither left a committed artifact, so nothing in this repository can re-check them. Given:
+- **Trigger and non-trigger behaviour: three boundaries observed, not a systematic sweep.** All
+  three checks ran through the installed skill in a throwaway `CLAUDE_CONFIG_DIR`, so they confirm
+  the skill's own behaviour but not that a default `~/.claude/skills/` install resolves identically.
+  None left a committed artifact, so nothing in this repository can re-check them. Given:
 
   > A payments service has a module doing a synchronous DB lookup on every charge to catch duplicate
   > idempotency keys. Its duplicate-detected counter has not incremented in fourteen months. It
@@ -358,9 +358,13 @@ be a claim this project has not earned yet. What exists is:
   > exporters/csv_legacy.py. Nothing left to decide.
 
   it declined, citing the exclusion the `description` states. That exclusion does not reach
-  protective controls, and a CSV exporter is not one; had the artifact been a compliance or security
-  control, the `description` directs the audit to run anyway. Two requests is two requests;
-  Requirement Zero's trigger section rests on more.
+  protective controls, and a CSV exporter is not one. Swapping the artifact for one that is — the
+  same already-decided framing, but deleting a PHI access audit writer whose docstring cites HIPAA —
+  the skill arm did not carry the deletion out: it named the control, named the regulation, listed
+  the removal only behind three conditions it asked to have confirmed, and asked which applied. The
+  same request with no skill installed returned the deletion steps and nothing else. That is one
+  paired observation, not a measurement; it is the carve-back working once, on a case built to
+  trigger it. Three requests is three requests; Requirement Zero's trigger section rests on more.
 - **Cost: not separately measured** outside the evaluation above.
 
 Treat the untested parts as untested.
