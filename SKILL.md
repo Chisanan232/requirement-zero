@@ -50,17 +50,46 @@ step that produces a verdict.
 
 ## Verdicts
 
-State exactly one:
+State exactly one. Do not present the five as options for the user to choose between, and do not
+hedge with "it depends" — commit, then show the reasoning that can be argued with.
 
-- **DELETE** — the requirement does not earn its existence.
-- **REDUCE** — real need, oversized proposed scope or solution.
-- **DEFER** — plausible value, insufficient present evidence.
-- **BUILD** — necessary and aligned with the fundamental objective.
-- **BUILD HARD** — difficult and expensive, but attacks a mission-critical bottleneck and must
-  not be simplified away.
+| Verdict | Select when |
+|---|---|
+| **DELETE** | No observer and no signal can be named for the whole requirement, or it duplicates something the system already does. |
+| **REDUCE** | The core outcome has evidence, but named parts failed the step 2 test. List every part removed. |
+| **DEFER** | Value is plausible and the only support is a prediction. Name the concrete trigger that would revive it. |
+| **BUILD** | Evidence supports the outcome and it is core. Build the step 4 version, nothing beyond it. |
+| **BUILD HARD** | Core, and the cheap version provably fails the outcome. Say which simplification was rejected and what it would break. |
 
-Report the fundamental objective, the evidence, the scope deleted, the scope retained, and the
-next action.
+BUILD HARD is not a compliment for ambitious work; it requires naming the simpler version you
+considered and the specific way it fails.
+
+Verdict rules that decide common cases:
+
+- An abstraction, interface, or plugin point with exactly one implementation and no committed
+  second consumer is REDUCE — build the concrete thing. "Committed" means a named consumer with
+  a date, not an anticipated one.
+- Configurability with no user who has asked to configure it is DELETE. Hardcode the value; a
+  constant is one edit away from a setting.
+- A generalization justified by a second case that does not exist yet is DEFER, and the trigger
+  is the second case arriving.
+- Scope justified only by symmetry, consistency, or completeness ("we support X, so we should
+  support Y") is DELETE unless Y has its own observer.
+- Work whose only support is a hypothetical future user, elegance, or best practice is DELETE or
+  DEFER, never BUILD.
+- If the same outcome is reachable by deleting existing code, that is the BUILD.
+
+## Output contract
+
+Report, in this order and no longer than it needs to be:
+
+1. **Fundamental objective** — the observable outcome required, not the requested artifact.
+2. **Evidence** — what supports it, and its provenance. State "no evidence found" plainly when
+   that is the case; do not fill the gap with plausible reasoning.
+3. **Verdict** — one of the five.
+4. **Deleted scope** — what is not being built, itemized.
+5. **Retained scope** — what is being built, itemized and bounded.
+6. **Next action** — the single concrete next step, or the trigger to wait for.
 
 ## Boundaries
 
