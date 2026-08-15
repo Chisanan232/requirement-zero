@@ -77,6 +77,42 @@ behaviour is version-dependent and was observed on one version only.
 
 `~/.claude/skills/` is the path to use.
 
+### Installing Codebase Zero, the sibling skill
+
+v0.2 adds a second skill, [Codebase Zero](skills/codebase-zero/SKILL.md), which audits code that
+already exists. It lives at `skills/codebase-zero/SKILL.md` inside this repository.
+
+**A nested skill directory is not discovered.** This was tested, not assumed: with the repository
+cloned to a skills directory, an agent asked to list its available skills reported
+`requirement-zero` and did not report `codebase-zero`. Nesting a skill inside another skill's
+directory does not register it, and there is no warning — the skill is simply absent. So the clone
+alone gives you Requirement Zero only.
+
+To install both, add one symlink next to the clone:
+
+```bash
+git clone https://github.com/Chisanan232/requirement-zero.git ~/.claude/skills/requirement-zero
+ln -s ~/.claude/skills/requirement-zero/skills/codebase-zero ~/.claude/skills/codebase-zero
+```
+
+Both skills then appear, and `git pull` still updates both, because the symlink points into the
+clone. This was verified end to end: the agent listed `codebase-zero`, loaded its `SKILL.md` body,
+and read a file from its `references/` directory through the symlink.
+
+Copying works equally well if you would rather not use a symlink:
+
+```bash
+cp -R ~/.claude/skills/requirement-zero/skills/codebase-zero ~/.claude/skills/codebase-zero
+```
+
+The trade is that `git pull` no longer updates the copy — you recopy after each update.
+
+Removing either skill is deleting its directory or symlink. Confirm the install the same way as
+above: ask the agent to list its skills, and expect both `requirement-zero` and `codebase-zero`.
+
+Tested on Claude Code 2.1.226 only. The nesting behaviour is a property of how the host discovers
+skills, so verify it yourself on another host rather than assuming it carries over.
+
 ## Invoking it
 
 There are two paths, and the first is the normal one.
