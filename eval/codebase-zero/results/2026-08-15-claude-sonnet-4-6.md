@@ -160,8 +160,10 @@ neither arm was asked to produce. The 0 and the 2 are incidental phrasing matche
 not a behavioural measurement, and the 2-run edge is noise of a kind that would be actively
 misleading if read as an arm difference.
 
-It is left in the harness rather than made conditional so that this published JSON remains
-reproducible byte-for-byte from the current script. Recorded here, not quietly dropped.
+It is left in the harness rather than made conditional so that the `summary` block in this JSON still
+re-derives exactly from its stored runs under the current script. That is the only reproducibility
+this file claims: rerunning the suite will not reproduce these numbers, as
+[../../README.md](../../README.md#limitations) says. Recorded here, not quietly dropped.
 
 ## What would change the conclusion
 
