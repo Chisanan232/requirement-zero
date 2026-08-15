@@ -30,7 +30,9 @@ name.
 [USAGE.md](USAGE.md) covers the rest: both install paths and what was actually tested, when each
 skill fires and when it must not, how to read each verdict, how they interact with your project's
 existing safety and compliance constraints, known failure modes, and which hosts this has actually
-been tested on.
+been tested on. Most of its observed behaviour — the trigger and non-trigger runs, the failure
+modes, the cost figures — is Requirement Zero's; it says so where Codebase Zero has no equivalent
+evidence yet.
 
 ## The problem
 
