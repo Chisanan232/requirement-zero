@@ -42,15 +42,18 @@ are suffixed `-partial`. The harness prints an aggregate table and writes no pro
 `results/*.md` is hand-written from the JSON, so no narrative claim exists that a person did not
 check against the data.
 
-`--self-test` covers both profiles' vocabularies in one pass and makes no API calls.
+`--self-test` covers both profiles' vocabularies in one pass, each case against the vocabulary its
+own profile actually uses, and makes no API calls.
 
 ## What is specific to this profile
 
 **A different vocabulary, and one dangerous collision.** `DEFER CLEANUP` and `DELETE` both begin
 with D, and `DEFER CLEANUP` contains `DEFER`, which is a verdict in the *other* profile. The
-harness matches longest-first within the active profile's vocabulary, and `--self-test` pins
-`DEFER CLEANUP` against degrading to `DEFER` under the emphasis and hyphenation noise that models
-actually produce.
+harness matches within the active profile's vocabulary, in the order that vocabulary lists — and
+refuses to start if any profile lists a verdict ahead of one it is a prefix of, so the ordering is
+enforced rather than merely intended. `--self-test` pins `DEFER CLEANUP` against degrading to
+`DEFER` under the emphasis and hyphenation noise that models actually produce, and pins bare `DEFER`
+as `UNPARSEABLE` here, since it belongs to the other profile.
 
 **A different definition of the dangerous error.** In the Requirement Zero suite a false rejection
 is refusing work that should be built. Here it is the mirror image: reaching DELETE, CONSOLIDATE, or
@@ -148,7 +151,9 @@ Three limitations are specific to this profile:
 ## Adding a case
 
 Add `cases/NN-slug.md` with frontmatter `id`, `expected_verdict` (one of the six), `case_type`,
-`example` (a path that resolves), and optionally `guard`. Keep every trace of the answer out of the
+`example` (a path that resolves), and optionally `guard` — which is only accepted on a case expecting
+KEEP or INVEST, since a guard on a case that expects removal can never fail and the harness rejects
+one rather than counting it. Keep every trace of the answer out of the
 body, including the reasoning and not just the verdict word. Then run
 `python3 eval/run_eval.py --profile codebase-zero --runs 1 --case NN` to check it loads and parses,
 and add the worked reasoning to

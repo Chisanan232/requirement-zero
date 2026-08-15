@@ -81,9 +81,11 @@ both profiles, makes no API calls and costs nothing). Nothing else — this is a
 platform.
 
 Each profile carries its own skill path, case directory, prompt, verdict vocabulary, and definition
-of a false rejection, so adding the second skill did not require a second copy of the harness. Guard
-cases are selected by their `guard:` frontmatter key rather than by filename, so a corpus that
-numbers its cases differently cannot silently lose its guards.
+of a false rejection, so adding the second skill did not require a second copy of the harness. Two
+things a profile cannot get wrong quietly: guard cases are selected by their `guard:` frontmatter key
+rather than by filename, so a corpus that numbers its cases differently cannot silently lose its
+guards, and a case that declares `guard:` while expecting a scope-losing verdict is rejected at load
+time, because such a guard would inflate the guard run count while being structurally unable to fail.
 
 The harness resolves all paths relative to its own location, so it behaves identically from any
 working directory.
@@ -270,9 +272,19 @@ Because this one function decides every other number in the suite, it has its ow
 python3 eval/run_eval.py --self-test
 ```
 
-That checks 28 known-tricky strings across both profiles' vocabularies — including `DEFER CLEANUP`,
-which must not degrade to `DEFER` — makes no API calls, and costs nothing. Run it after touching
-the parser.
+That checks 32 known-tricky strings, **each against the real vocabulary of the profile it belongs
+to** — the same tuple a paid run uses. That detail is the point of the test rather than an
+implementation note: an earlier version ran every case against the union of both profiles'
+verdicts, which is ordered correctly by construction, so the test passed even with a mis-ordered
+profile tuple and could not detect the one failure it exists to catch. The cases now include the
+cross-profile negatives (`DEFER` alone is not a codebase-zero verdict; `CONSOLIDATE` is not a
+requirement-zero one), which must come back `UNPARSEABLE` rather than being guessed at.
+
+The ordering invariant itself is enforced separately, at import: `_assert_prefix_safe` refuses to
+start if any profile lists a verdict before one it is a prefix of, so `DEFER` ahead of
+`DEFER CLEANUP` is a startup failure, not a silently corrupted run.
+
+Both make no API calls and cost nothing. Run the self-test after touching the parser.
 
 ## Limitations
 
