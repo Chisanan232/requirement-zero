@@ -102,10 +102,13 @@ number suggests.** The baseline treated case 07 as an open question pending exte
 removal stays on the table, blocked on the payment processor's idempotency semantics and a
 compliance sign-off. The skill arm closed the question from the evidence already present — the
 fourteen-month-quiet counter is what a working guard looks like. Skill run 3 named the inference
-directly: "The engineer's framing — "the counter hasn't fired, drop the guard" — applies the
-inference "no traffic means no purpose" to exactly the case where that inference is most expensive to
-get wrong." That is the anti-heuristic the skill
-states, applied. It changed the verdict label and the framing; it did not change what stayed.
+directly:
+
+> The engineer's framing — "the counter hasn't fired, drop the guard" — applies the inference "no
+> traffic means no purpose" to exactly the case where that inference is most expensive to get wrong.
+
+That is the anti-heuristic the skill states, applied. It changed the verdict label and the framing;
+it did not change what stayed.
 
 **On the four cases that are about removal, the arms are identical: 12/12 each.** Cases 01 (DELETE),
 02 (CONSOLIDATE), 03 (SIMPLIFY) and 06 (DEFER CLEANUP) were 3/3 in both arms, with no verdict
