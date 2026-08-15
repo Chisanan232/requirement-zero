@@ -128,13 +128,15 @@ says nothing about one.
 
 **The prompt is doing part of the work attributed to the skill.** Both arms receive a prompt that
 lists KEEP and INVEST with definitions and states "Removing nothing is an acceptable and often
-correct answer." That is deliberate — a baseline that was never told retention was allowed would be
+correct answer, and so is concluding that an expensive subsystem deserves more investment rather than
+less." The second half matters as much as the first, and it is one reason the baseline reached INVEST
+unprompted on case 05. That is deliberate — a baseline that was never told retention was allowed would be
 a straw man — but it means the baseline arm is not "an agent without the skill's doctrine", it is an
 agent with the vocabulary and the licence and without the procedure, the evidence rules, or the
 anti-heuristics. The 4-run gap measures the procedure only.
 
 **The skill arm cost more.** Output tokens +4,526 (+17.4% relative to baseline's 26,071), mean
-latency 26.9 s → 31.5 s, cost +$0.1393 over 21 calls. That is expected: the skill body is ~9,350
+latency 26.9 s → 31.5 s, cost +$0.1393 over 21 calls. That is expected: the skill body is 9,356
 characters of appended system prompt and the six-part report it asks for is longer prose. **No
 downstream saving is measured here at all** — there is no arm in which the audit's recommendation is
 carried out, so the engineering time a correct retention decision avoids, and the time a correct
