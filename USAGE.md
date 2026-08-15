@@ -307,11 +307,14 @@ One practical constraint on all of this. Every exclusion above lives in the `des
 character budget that scales with the context window, and
 [shortens or drops descriptions](https://code.claude.com/docs/en/skills#skill-descriptions-are-cut-short)
 — least-used skills first — when the listing overflows, capping each entry's combined
-`description` and `when_to_use` text at 1,536 characters regardless of budget. Codebase Zero's is
-995, so the cap is not the binding constraint, but a crowded skills directory is: a truncated
-description keeps the name and can lose the exclusions. If either skill starts firing on work it
-names as excluded, check the listing budget with `/context` and `/doctor` before assuming the
-doctrine failed.
+`description` and `when_to_use` text at 1,536 characters regardless of budget. Codebase Zero's
+parsed `description` is 1,011 characters and it has no `when_to_use`, so the per-entry cap is not the
+binding constraint, but a crowded skills directory is: a truncated description keeps the name and can
+lose the exclusions. If either skill starts firing on work it names as excluded, check the listing
+budget with `/context` and `/doctor` before assuming the doctrine failed. Both limits are
+configurable — `skillListingBudgetFraction` and `skillListingMaxDescChars` in settings, or
+`SLASH_COMMAND_TOOL_CHAR_BUDGET` in the environment — so raising the budget is the remedy, not
+shortening the doctrine.
 
 Note what is deliberately *not* excluded. Requirement Zero refuses safety, security, legal, and
 compliance requirements outright, because a stated protective requirement must not be argued with.
