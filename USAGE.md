@@ -45,14 +45,22 @@ confirm discovery yourself with the check below before relying on it.
 One thing to get right if you do. A plain `git clone` into `.claude/skills/requirement-zero`
 leaves a nested git repository, which your project records as a gitlink rather than as committed
 files — so it will *not* travel with clones of your project, which is usually the whole reason for
-choosing this location. To commit the skill alongside a codebase, either add it as a submodule:
+choosing this location. Two ways to actually get it there.
+
+Copy the files in without their `.git` directory. They become ordinary committed files, so every
+plain clone of your project has the skill on disk. The trade is that updating is no longer
+`git pull` — you recopy.
+
+Or add it as a submodule:
 
 ```bash
 git submodule add https://github.com/Chisanan232/requirement-zero.git .claude/skills/requirement-zero
 ```
 
-or copy the files in without their `.git` directory, which trades `git pull` updates for a
-self-contained checkout.
+That keeps `git pull` updates, but a submodule commits a pointer rather than the files, so a
+colleague running a plain `git clone` of your project still gets an empty directory. They need
+`git clone --recurse-submodules`, or `git submodule update --init` afterwards, before the skill
+is on disk at all.
 
 ### Confirming it installed
 
