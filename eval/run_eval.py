@@ -124,8 +124,9 @@ VERDICT: <one of DELETE, CONSOLIDATE, SIMPLIFY, DEFER CLEANUP, KEEP, INVEST>
 {body}
 """
 
-# One profile per skill. Verdict tuples are matched longest-first, so any verdict that is a prefix
-# of another must come first -- "DEFER CLEANUP" before "DEFER" would be a silent misread otherwise.
+# One profile per skill. Verdict tuples are matched in the order written, so any verdict that is a
+# prefix of a later one must come first -- "DEFER CLEANUP" after "DEFER" would be a silent misread.
+# _assert_prefix_safe below enforces that at import rather than trusting this comment.
 # false_rejections are the verdicts that are wrong for this corpus's must-not-lose-it cases: for
 # requirement-zero, refusing work that should be built; for codebase-zero, removing or downgrading
 # something the case establishes as load-bearing.
@@ -148,14 +149,27 @@ PROFILES: dict[str, dict[str, object]] = {
     },
 }
 
-# Every verdict any profile can produce, longest first. Used only as the default vocabulary for
-# --self-test, which checks extraction across both profiles in one pass.
-# Sorted by descending length then alphabetically: set iteration order varies between interpreter
-# runs, and a vocabulary that reorders per run is not a reproducible harness.
-ALL_VERDICTS: tuple[str, ...] = tuple(sorted(
-    {v for p in PROFILES.values() for v in p["verdicts"]},  # type: ignore[union-attr]
-    key=lambda v: (-len(v), v),
-))
+
+def _assert_prefix_safe() -> None:
+    """Fail at import if any profile's vocabulary can misread one verdict as another.
+
+    Matching walks the tuple in order, so a verdict that is a prefix of a later member (DEFER
+    before DEFER CLEANUP, BUILD before BUILD HARD) would return the short one and silently corrupt
+    every metric downstream. Checked here because the ordering is hand-written per profile and a
+    comment asking for it is not a guarantee.
+    """
+    for name, profile in PROFILES.items():
+        verdicts: tuple[str, ...] = profile["verdicts"]  # type: ignore[assignment]
+        for i, short in enumerate(verdicts):
+            for long in verdicts[i + 1:]:
+                if long.startswith(short):
+                    raise SystemExit(
+                        f"profile {name!r}: {long!r} can never match because {short!r} precedes it; "
+                        f"list the longer verdict first."
+                    )
+
+
+_assert_prefix_safe()
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
@@ -217,71 +231,78 @@ def _normalise_tail(tail: str) -> str:
     return re.sub(r"\s+", " ", tail).strip().upper()
 
 
-def extract_verdict(text: str, verdicts: tuple[str, ...] = ()) -> str:
+def extract_verdict(text: str, verdicts: tuple[str, ...]) -> str:
     """Read the final `VERDICT:` line. Never guess: anything else is UNPARSEABLE.
 
-    `verdicts` is the profile's vocabulary, matched longest-first. It defaults to every verdict
-    either profile can produce so that --self-test covers both without threading a profile in.
+    `verdicts` is the active profile's vocabulary, and it is required. An earlier version defaulted
+    it to the union of both profiles' verdicts, which made --self-test pass against a vocabulary no
+    real run ever uses -- so the test could not detect a mis-ordered profile tuple, which is the one
+    failure it exists to catch.
     """
-    verdicts = verdicts or ALL_VERDICTS
     for line in reversed(text.strip().splitlines()):
         line = line.strip().strip(_TAIL_STRIP)
         if not line.upper().lstrip(_TAIL_STRIP).startswith("VERDICT"):
             continue
         tail = _normalise_tail(line.split(":", 1)[-1])
-        for verdict in verdicts:  # longest first: BUILD HARD before BUILD, DEFER CLEANUP before DEFER
+        for verdict in verdicts:  # in tuple order; _assert_prefix_safe guarantees no shadowing
             if tail.startswith(verdict):
                 return verdict
         return UNPARSEABLE
     return UNPARSEABLE
 
 
-# (input, expected) pairs for --self-test. Costs nothing and defends verdict extraction, which
-# every other metric depends on.
+# (profile, input, expected) triples for --self-test. Each case runs against that profile's real
+# vocabulary -- the same tuple a real run uses -- so a mis-ordered tuple fails here rather than
+# corrupting a paid run. Costs nothing and defends verdict extraction, which every metric rests on.
 SELF_TEST_CASES = (
-    ("VERDICT: BUILD HARD", "BUILD HARD"),
-    ("VERDICT: BUILD **HARD**", "BUILD HARD"),
-    ("VERDICT: BUILD  HARD", "BUILD HARD"),
-    ("VERDICT: BUILD-HARD", "BUILD HARD"),
-    ("VERDICT: BUILD_HARD", "BUILD HARD"),
-    ("VERDICT: BUILD HARD", "BUILD HARD"),
-    ("VERDICT: `BUILD HARD`", "BUILD HARD"),
-    ("> VERDICT: BUILD HARD", "BUILD HARD"),
-    ("**VERDICT: BUILD HARD**", "BUILD HARD"),
-    ("prose\n\nVERDICT: BUILD HARD.", "BUILD HARD"),
-    ("VERDICT: BUILD", "BUILD"),
-    ("verdict: build", "BUILD"),
-    ("**VERDICT: DELETE**", "DELETE"),
-    ("VERDICT: `DEFER`", "DEFER"),
-    ("VERDICT: REDUCE", "REDUCE"),
-    ("VERDICT: maybe", UNPARSEABLE),
-    ("no verdict line at all", UNPARSEABLE),
-    ("", UNPARSEABLE),
-    ("VERDICT: BUILD HARD\nVERDICT: DELETE", "DELETE"),  # last line wins
+    ("requirement-zero", "VERDICT: BUILD HARD", "BUILD HARD"),
+    ("requirement-zero", "VERDICT: BUILD **HARD**", "BUILD HARD"),
+    ("requirement-zero", "VERDICT: BUILD  HARD", "BUILD HARD"),
+    ("requirement-zero", "VERDICT: BUILD-HARD", "BUILD HARD"),
+    ("requirement-zero", "VERDICT: BUILD_HARD", "BUILD HARD"),
+    ("requirement-zero", "VERDICT: BUILD HARD", "BUILD HARD"),
+    ("requirement-zero", "VERDICT: `BUILD HARD`", "BUILD HARD"),
+    ("requirement-zero", "> VERDICT: BUILD HARD", "BUILD HARD"),
+    ("requirement-zero", "**VERDICT: BUILD HARD**", "BUILD HARD"),
+    ("requirement-zero", "prose\n\nVERDICT: BUILD HARD.", "BUILD HARD"),
+    ("requirement-zero", "VERDICT: BUILD", "BUILD"),
+    ("requirement-zero", "verdict: build", "BUILD"),
+    ("requirement-zero", "**VERDICT: DELETE**", "DELETE"),
+    ("requirement-zero", "VERDICT: `DEFER`", "DEFER"),
+    ("requirement-zero", "VERDICT: REDUCE", "REDUCE"),
+    ("requirement-zero", "VERDICT: maybe", UNPARSEABLE),
+    ("requirement-zero", "no verdict line at all", UNPARSEABLE),
+    ("requirement-zero", "", UNPARSEABLE),
+    ("requirement-zero", "VERDICT: BUILD HARD\nVERDICT: DELETE", "DELETE"),  # last line wins
+    # A verdict belonging only to the other profile is not guessed at, it is UNPARSEABLE.
+    ("requirement-zero", "VERDICT: CONSOLIDATE", UNPARSEABLE),
     # codebase-zero vocabulary. DEFER CLEANUP must not degrade to DEFER, and the two-word forms
     # arrive with the same emphasis and hyphenation noise the five-verdict set already showed.
-    ("VERDICT: DEFER CLEANUP", "DEFER CLEANUP"),
-    ("VERDICT: DEFER-CLEANUP", "DEFER CLEANUP"),
-    ("**VERDICT: DEFER CLEANUP**", "DEFER CLEANUP"),
-    ("VERDICT: `DEFER  CLEANUP`.", "DEFER CLEANUP"),
-    ("VERDICT: CONSOLIDATE", "CONSOLIDATE"),
-    ("VERDICT: SIMPLIFY", "SIMPLIFY"),
-    ("VERDICT: KEEP", "KEEP"),
-    ("VERDICT: INVEST", "INVEST"),
-    ("verdict: invest", "INVEST"),
+    ("codebase-zero", "VERDICT: DEFER CLEANUP", "DEFER CLEANUP"),
+    ("codebase-zero", "VERDICT: DEFER-CLEANUP", "DEFER CLEANUP"),
+    ("codebase-zero", "**VERDICT: DEFER CLEANUP**", "DEFER CLEANUP"),
+    ("codebase-zero", "VERDICT: `DEFER  CLEANUP`.", "DEFER CLEANUP"),
+    ("codebase-zero", "VERDICT: DEFER", UNPARSEABLE),  # bare DEFER is the other profile's verdict
+    ("codebase-zero", "VERDICT: BUILD HARD", UNPARSEABLE),
+    ("codebase-zero", "VERDICT: DELETE", "DELETE"),
+    ("codebase-zero", "VERDICT: CONSOLIDATE", "CONSOLIDATE"),
+    ("codebase-zero", "VERDICT: SIMPLIFY", "SIMPLIFY"),
+    ("codebase-zero", "VERDICT: KEEP", "KEEP"),
+    ("codebase-zero", "VERDICT: INVEST", "INVEST"),
+    ("codebase-zero", "verdict: invest", "INVEST"),
 )
 
 
 def self_test() -> int:
     failures = [
-        (raw, expected, got)
-        for raw, expected in SELF_TEST_CASES
-        if (got := extract_verdict(raw)) != expected
+        (profile, raw, expected, got)
+        for profile, raw, expected in SELF_TEST_CASES
+        if (got := extract_verdict(raw, PROFILES[profile]["verdicts"])) != expected  # type: ignore[arg-type]
     ]
-    for raw, expected, got in failures:
-        print(f"FAIL {raw!r}: expected {expected!r}, got {got!r}")
+    for profile, raw, expected, got in failures:
+        print(f"FAIL [{profile}] {raw!r}: expected {expected!r}, got {got!r}")
     print(f"{len(SELF_TEST_CASES) - len(failures)}/{len(SELF_TEST_CASES)} "
-          f"verdict-extraction cases pass")
+          f"verdict-extraction cases pass across {len(PROFILES)} profile vocabularies")
     return 1 if failures else 0
 
 
