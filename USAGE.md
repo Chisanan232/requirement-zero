@@ -195,3 +195,67 @@ every time.
 
 For a worked decision in each direction, see [examples/index.md](examples/index.md) — six full
 cases, one per verdict plus a safety case.
+
+## Interaction with your existing project instructions
+
+Read this section before installing the skill into a project where safety, security, privacy,
+legal, compliance, or published-interface obligations exist. It is the most important section in
+this file.
+
+**Requirement Zero does not override those constraints.** If your `CLAUDE.md`, your architecture
+rules, your security policy, or a regulation requires something, this skill is not a mechanism
+for arguing it away. Its scope is *unvalidated new scope*, and protective constraints are not
+that.
+
+### The asymmetry that makes this coherent
+
+It would be incoherent to demand evidence for everything and then exempt some things by fiat.
+The rule is not an exemption; it is that missing evidence means two different things depending
+on what is missing evidence.
+
+| Requirement type | Examples | Effect of absent evidence |
+|---|---|---|
+| **Speculative** scope | future flexibility, anticipated scale, unrequested generality, a plugin point for a consumer who does not exist | Lowers confidence. Pushes toward DELETE or DEFER. |
+| **Protective** constraints | security, safety, privacy, data integrity, legal and regulatory obligations, backward compatibility of a published interface | Does **not** license removal. The default is **retain**. |
+
+For a protective constraint, removal requires a named owner's decision and, where applicable,
+security, legal, or compliance review, with the residual risk recorded in writing. "Nobody could
+name the rule" is a trigger to go and find out who owns it — not a finding that the protection is
+unnecessary. Absence of evidence about a threat is not evidence that the protection is
+unneeded, and that inference is backwards precisely where it is most expensive.
+
+### What the skill may legitimately do to a protective constraint
+
+It may challenge the **size of the implementation** while leaving the guarantee intact. "We need
+audit logging" can be REDUCE on *which events are logged* while remaining BUILD on *logging at
+all*. The question it is allowed to ask is: what is the smallest thing that keeps the guarantee
+whole?
+
+It may not reduce coverage of the guarantee and present that as a smaller version of it.
+Sampling 10% of an audit trail is not a smaller audit trail; it is a different, weaker
+guarantee in a performance costume.
+
+The full doctrine, including the out-of-scope list that overrides every other deletion rule in
+that document, is [references/deletion.md](references/deletion.md). That list covers security
+controls, authentication, authorization, encryption, input validation, audit trails, safety
+interlocks, rate limits, circuit breakers, kill switches, data integrity constraints, privacy
+and data-retention behaviour, consent flows, deletion rights, regulatory and contractual
+obligations, and compatibility of an interface with callers you cannot enumerate. Rate limits,
+circuit breakers, and kill switches are on it **whether or not an incident has already
+happened** — a control with a clean record may be working, not idle.
+
+### If you ever see it recommend deleting a protective control
+
+**Treat it as a defect and report it.** Do not act on it.
+
+The doctrine in [references/deletion.md](references/deletion.md) explicitly forbids that
+recommendation, so producing it is a failure of the skill and not a judgement you should weigh.
+The [PHI access audit log example](examples/safety-phi-access-audit-log.md) is the case built
+around exactly this boundary: every surface signal points at deletion — zero reads in three
+years, 30% of write volume, real measured latency cost, and only a vague "legal says" behind it
+— and the correct answer is still to retain the protection in full and route the latency
+complaint to the implementation. The [evaluation suite](eval/README.md) carries that case as a
+standing regression guard for the same reason.
+
+Nothing in this skill makes deleting a security, legal, privacy, safety, compliance, or
+compatibility constraint acceptable, easier, or optional.
