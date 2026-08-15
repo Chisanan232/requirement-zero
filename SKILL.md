@@ -61,8 +61,8 @@ hedge with "it depends" — commit, then show the reasoning that can be argued w
 | **BUILD** | Evidence supports the outcome and it is core. Build the step 4 version, nothing beyond it. |
 | **BUILD HARD** | Core, and the cheap version provably fails the outcome. Say which simplification was rejected and what it would break. |
 
-BUILD HARD is not a compliment for ambitious work; it requires naming the simpler version you
-considered and the specific way it fails.
+A BUILD HARD verdict is invalid unless it names the simpler version considered and the specific
+way that version fails the outcome. Without both, downgrade to BUILD and return to step 4.
 
 Verdict rules that decide common cases:
 
