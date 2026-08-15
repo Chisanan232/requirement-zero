@@ -108,7 +108,10 @@ Two results are worth naming. Both arms produced **zero false rejections**: no r
 work or under-built a requirement that should have been built, and the only over-deletion anywhere
 in the matrix came from the *baseline*. The clearest behavioural difference is case 03, where the
 skill arm reached DEFER on 2 of 3 runs against the baseline's 0 of 3 — a genuine
-build-nothing-yet decision on speculative scope, on one case out of six.
+build-nothing-yet decision on speculative scope, on one case out of six. It is offset by case 06,
+where the skill arm's *label* went the other way (REDUCE 3/3 against the baseline's BUILD 2/3)
+while the protective behaviour was identical in both arms. The aggregate is a near-cancellation of
+movements in both directions, not a lift.
 
 Reproducing it needs Python 3 and the `claude` CLI and nothing else: `python3 eval/run_eval.py`.
 
