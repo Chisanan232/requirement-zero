@@ -36,15 +36,23 @@ Removing it is deleting that directory. Nothing else on your system was touched.
 
 ### Project-scoped install
 
-Claude Code also supports project-scoped skills in `.claude/skills/` inside a repository, which
-is the right choice when you want the skill committed alongside a codebase so everyone working
-in it gets the same behaviour. The same clone applies, with the destination changed to
-`.claude/skills/requirement-zero` in the project.
+Claude Code also documents project-scoped skills in `.claude/skills/` inside a repository, which
+is the usual choice when you want the skill committed alongside a codebase so everyone working in
+it gets the same behaviour. This project did not test that location: every result in this document
+was produced against the **personal** location (`~/.claude/skills/`). Treat it as untested and
+confirm discovery yourself with the check below before relying on it.
 
-Verified honestly: the tests behind this document were run against the **personal** location
-(`~/.claude/skills/`). The project-scoped location is a documented Claude Code feature, but this
-project has not run its own test against it. If you use it, confirm discovery yourself with the
-check below before relying on it.
+One thing to get right if you do. A plain `git clone` into `.claude/skills/requirement-zero`
+leaves a nested git repository, which your project records as a gitlink rather than as committed
+files — so it will *not* travel with clones of your project, which is usually the whole reason for
+choosing this location. To commit the skill alongside a codebase, either add it as a submodule:
+
+```bash
+git submodule add https://github.com/Chisanan232/requirement-zero.git .claude/skills/requirement-zero
+```
+
+or copy the files in without their `.git` directory, which trades `git pull` updates for a
+self-contained checkout.
 
 ### Confirming it installed
 
