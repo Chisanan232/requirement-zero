@@ -77,8 +77,9 @@ python3 eval/run_eval.py --runs 1 --case 06 --arm skill
 
 Flags: `--profile requirement-zero|codebase-zero`, `--runs N`, `--case <filename prefix>`,
 `--arm baseline|skill`, and `--self-test` (checks verdict parsing against known-tricky strings for
-both profiles, makes no API calls and costs nothing). Nothing else — this is a script, not a
-platform.
+both profiles, and checks each skill's `description` is present, within the host's listing cap, and
+still names its load-bearing terms; makes no API calls and costs nothing). Nothing else — this is a
+script, not a platform.
 
 Each profile carries its own skill path, case directory, prompt, verdict vocabulary, and definition
 of a false rejection, so adding the second skill did not require a second copy of the harness. Three
@@ -288,7 +289,9 @@ The ordering invariant itself is enforced separately, at import: `_assert_prefix
 start if any profile lists a verdict before one it is a prefix of, so `DEFER` ahead of
 `DEFER CLEANUP` is a startup failure, not a silently corrupted run.
 
-Both make no API calls and cost nothing. Run the self-test after touching the parser.
+Both make no API calls and cost nothing. Run the self-test after touching the parser, and after
+editing either skill's `description` — the description is the trigger surface, so a category dropped
+from it cannot be recovered by anything in the skill body, and `--self-test` is what notices.
 
 ## Limitations
 
