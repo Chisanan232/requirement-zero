@@ -133,8 +133,34 @@ The skill is a Markdown file: there is no CLI, server, package, or runtime to in
 
 ## Status
 
-Pre-v0.1, under active development. The verdict set and layout above are settled; content is
-still landing.
+v0.1. The skill, its references, the worked examples, the evaluation suite, and the usage
+documentation are all in the tree and usable. The verdict set, the ordered discipline, and the
+repository layout are settled.
+
+Tested on Claude Code. Not tested on Codex or any other Agent Skills-compatible host — see
+[USAGE.md](USAGE.md#compatibility) for exactly what was and was not run, and what verifying
+another host would take.
+
+## What v0.1 contains
+
+- `SKILL.md` — the skill, deliberately compact
+- `references/` — four supporting documents, loaded only when the agent needs one
+- `examples/` — six worked decisions, one per verdict plus a safety case, with an index
+- `eval/` — the harness, six adversarial input cases, and one published run
+- `USAGE.md` — installation, triggers and non-triggers, verdicts, safety boundaries, failure
+  modes, compatibility
+
+What it deliberately does not contain, because none of it is needed to install or run a Markdown
+skill:
+
+- No package registry entry, and no package manifest
+- No hosted service
+- No installer binary or install script
+- No MCP server
+- No custom runtime, and no dependencies of any kind
+
+Installation is `git clone` into your skills directory. If that ever stops being true, the
+project has grown something it did not earn.
 
 ## License
 
