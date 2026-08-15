@@ -73,7 +73,7 @@ cannot silently switch the guards off.
 
 ## Cases
 
-Seven files in [cases/](cases/), covering every category the ticket requires. Frontmatter carries the
+Seven files in [cases/](cases/), one per verdict plus a second retention case. Frontmatter carries the
 ground truth; the body carries the artifact as it would actually present itself plus the evidence an
 engineer would have gathered.
 
