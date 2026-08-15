@@ -16,8 +16,7 @@ re-run button.
 
 ## Who filed it, and on what authority
 
-Filed by the support team, citing specific tickets by number. No appeal to authority, principle,
-or best practice was made.
+Filed by the support team. The filing cites specific support tickets by number.
 
 ## Facts available
 
