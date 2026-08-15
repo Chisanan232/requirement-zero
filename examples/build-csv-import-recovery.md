@@ -25,8 +25,9 @@ they see any value.
 ## Evidence
 
 - **Present evidence:** 41 support tickets in 90 days, all the same shape: "import failed, I don't
-  know why." Median time-to-first-successful-import is 3.5 days, and 6 of 19 trials in the last
-  quarter never completed an import at all. Support currently fixes these by asking for the file,
+  know why." Most come from existing customers re-importing updated rosters, not from trials —
+  import is a recurring task, not only a first-run one. Median time-to-first-successful-import is
+  3.5 days, and 6 of 19 trials in the last quarter never completed an import at all. Support currently fixes these by asking for the file,
   running a local script, and mailing back the offending line numbers — roughly 40 minutes each.
 - **Imagined future scale:** not needed. The evidence is entirely from current behaviour with
   current customers.

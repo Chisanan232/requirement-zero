@@ -4,11 +4,11 @@ verdict: BUILD HARD
 domain: logistics / core engine
 ---
 
-# BUILD HARD — constrained dispatch optimiser
+# BUILD HARD — constrained dispatch optimizer
 
 ## Request
 
-"We need a real routing optimiser: re-solve the whole city's assignment every 30 seconds under
+"We need a real routing optimizer: re-solve the whole city's assignment every 30 seconds under
 time-window, cold-chain, and driver-certification constraints, in under two seconds, with
 deterministic replay of every solve."
 
@@ -35,8 +35,10 @@ not a business, and being cheap while missing windows loses the pharmacy contrac
     pharmacies invoked the SLA clause.
   - Stops per completed route: **3.1**. Fully-loaded cost per delivery **$11.20** against a
     **$6.50** price. Gross margin is negative on every order.
-  - Nine cold-chain excursions — insulin held above 8 °C past its 90-minute out-of-fridge budget —
-    each one a discarded prescription, a re-dispense, and a reportable event.
+  - Nine cold-chain excursions — items held above 8 °C beyond the 90-minute out-of-fridge budget our
+    cold-chain policy allows. That budget is our own contractual commitment to the pharmacies and is
+    stricter than most product labels require; breaching it means a discarded prescription, a
+    re-dispense, and a reportable event under the BAA.
   - Four controlled-substance orders routed to drivers without the required certification and
     manually re-assigned. The chain-of-custody exposure here is the kind that ends a pharmacy
     relationship.
