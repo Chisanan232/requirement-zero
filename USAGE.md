@@ -309,3 +309,50 @@ it, because it has no implementation arm.
 So: do not point it at a trivial request. Its value is entirely in the cases where the answer
 turns out to be "build much less than you asked for", and a one-line change has no such answer to
 find.
+
+## Compatibility
+
+Stated per host, with what was actually run. There is no "works everywhere" claim here.
+
+### Claude Code — tested
+
+Verified by installing into a skills directory with a plain `git clone` of the public repository,
+with no install tooling, no package manager, and no configuration changes, then:
+
+1. **Discovery.** Asked to enumerate the skills available to it, the agent listed
+   `requirement-zero`.
+2. **Triggering.** Given the log-parser plugin-system request above, the skill fired without being
+   named and returned DEFER with the committed-second-consumer rule cited.
+3. **Non-triggering, both boundaries.** The security request and the bug-fix request above were
+   both correctly declined as out of scope, from the `description` frontmatter alone.
+
+Also established during that testing, and recorded here so nobody repeats it: skills are not
+discovered via `--plugin-dir` or via `CLAUDE_CONFIG_DIR`; `~/.claude/skills/` is the path that
+works.
+
+### Codex and other Agent Skills-compatible hosts — NOT tested
+
+**This has not been verified, and you should not assume it works.**
+
+Why it was not tested: the Codex CLI was not installed in the environment this project was
+developed in, and authenticating it required credentials that were not available. No run was
+made, so there is no result to report — neither positive nor negative.
+
+What makes portability *plausible* on inspection alone:
+
+- The skill is a `SKILL.md` file: YAML frontmatter plus a Markdown body. Nothing else.
+- There is no executable component — no script, no binary, no build step, no install hook.
+- There is no tool dependency and no MCP server. The skill never needs to call anything.
+- The `references/` files are reached by plain relative Markdown links from `SKILL.md`, so a host
+  that resolves relative links in a skill directory gets progressive disclosure for free, and a
+  host that does not still gets a self-contained skill body.
+
+That is an argument from structure, not evidence. To actually verify it on another host, someone
+would need to: install the directory wherever that host discovers skills; confirm the host lists
+`requirement-zero` among available skills; issue the log-parser plugin request and check that a
+verdict with itemized deleted and retained scope comes back; issue the credential-stuffing
+request and the December off-by-one request and check that both are declined as out of scope; and
+confirm that a `references/` link is resolvable from `SKILL.md` in that host. Reporting those
+five results would replace this section with a tested one.
+
+Until then: **untested**.
