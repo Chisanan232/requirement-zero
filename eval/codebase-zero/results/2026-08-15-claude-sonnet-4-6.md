@@ -87,7 +87,7 @@ texts directly:
 - **Case 07, baseline runs 1 and 3 → DEFER CLEANUP.** Both retained the guard and made contacting
   compliance and payments ownership the gating action. Run 1: "only the read/check is in question"
   after sign-off; run 3: "the right answer is likely to replace the DB check with a fast in-process
-  or Redis cache, not to remove the guard."
+  or Redis cache, not to remove the guard …"
 - **Case 07, baseline run 2 → INVEST.** It concluded the guard "is load-bearing for the system's
   mission and must survive" and recommended spending engineering on an off-hot-path design.
 
