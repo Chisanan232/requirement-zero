@@ -18,9 +18,8 @@ stays compact deliberately.
 | [Constrained dispatch optimiser](build-hard-dispatch-optimizer.md) | **BUILD HARD** | Difficulty is the mission; simplifying it produces a product that cannot work |
 | [PHI access audit log](safety-phi-access-audit-log.md) | **BUILD** (safety guard) | A protection is not deleted for lack of a convenient justification |
 
-Read [the DELETE case](delete-assumed-dashboard.md) and
-[the BUILD HARD case](build-hard-dispatch-optimizer.md) together if you only read two. They are the
-two ends of the range, and a method that can only produce one of them is not this method.
+If you read two, read [the DELETE case](delete-assumed-dashboard.md) and
+[the BUILD HARD case](build-hard-dispatch-optimizer.md). They are the two ends of the range.
 
 ## Structure
 
@@ -39,8 +38,10 @@ frontmatter    id, verdict, domain (+ guard, where the case is a regression guar
 ## Next action           the single next step
 ```
 
-Optional trailing sections appear only where the case needs them: `## Trigger to revisit` on DEFER,
-and a closing note where the case encodes a rule.
+The nine sections above are mandatory and always in that order. Two examples add an optional section:
+`## Trigger to revisit` before `## Next action` on the DEFER case, and a trailing note after
+`## Next action` on the REDUCE and safety cases. A fixture parser can require the nine and ignore
+anything after `## Next action`.
 
 ## What these are meant to make clear
 
