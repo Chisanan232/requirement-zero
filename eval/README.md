@@ -4,6 +4,12 @@ Requirement Zero is a Markdown skill that makes a coding agent decide whether a 
 deserves to exist before it designs or builds anything. It commits to one of five verdicts:
 **DELETE**, **REDUCE**, **DEFER**, **BUILD**, **BUILD HARD**. See [../SKILL.md](../SKILL.md).
 
+The harness serves two skills, selected with `--profile`. This file documents the Requirement Zero
+profile, which is the default, and the design decisions that apply to both — the two arms, the
+isolation flags, verdict extraction, why the baseline is deliberately strong, and why the token
+figures are not a saving. The Codebase Zero profile has its own corpus, its own guards, and its own
+results: [codebase-zero/README.md](codebase-zero/README.md).
+
 This directory answers one question, and only one:
 
 > Does loading the skill change the agent's decision in the intended direction — less unnecessary
@@ -69,9 +75,15 @@ python3 eval/run_eval.py --runs 1 --case 01
 python3 eval/run_eval.py --runs 1 --case 06 --arm skill
 ```
 
-Flags: `--runs N`, `--case <filename prefix>`, `--arm baseline|skill`, and `--self-test` (checks
-verdict parsing against known-tricky strings, makes no API calls and costs nothing). Nothing else —
-this is a script, not a platform.
+Flags: `--profile requirement-zero|codebase-zero`, `--runs N`, `--case <filename prefix>`,
+`--arm baseline|skill`, and `--self-test` (checks verdict parsing against known-tricky strings for
+both profiles, makes no API calls and costs nothing). Nothing else — this is a script, not a
+platform.
+
+Each profile carries its own skill path, case directory, prompt, verdict vocabulary, and definition
+of a false rejection, so adding the second skill did not require a second copy of the harness. Guard
+cases are selected by their `guard:` frontmatter key rather than by filename, so a corpus that
+numbers its cases differently cannot silently lose its guards.
 
 The harness resolves all paths relative to its own location, so it behaves identically from any
 working directory.
@@ -258,7 +270,8 @@ Because this one function decides every other number in the suite, it has its ow
 python3 eval/run_eval.py --self-test
 ```
 
-That checks 19 known-tricky strings, makes no API calls, and costs nothing. Run it after touching
+That checks 28 known-tricky strings across both profiles' vocabularies — including `DEFER CLEANUP`,
+which must not degrade to `DEFER` — makes no API calls, and costs nothing. Run it after touching
 the parser.
 
 ## Limitations
