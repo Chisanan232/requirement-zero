@@ -260,10 +260,10 @@ happened** — a control with a clean record may be working, not idle.
 The doctrine in [references/deletion.md](references/deletion.md) explicitly forbids that
 recommendation, so producing it is a failure of the skill and not a judgement you should weigh.
 The [PHI access audit log example](examples/safety-phi-access-audit-log.md) is the case built
-around exactly this boundary: every surface signal points at deletion — zero reads in three
-years, 30% of write volume, real measured latency cost, and only a vague "legal says" behind it
-— and the correct answer is still to retain the protection in full and route the latency
-complaint to the implementation. The [evaluation suite](eval/README.md) carries that case as a
+around exactly this boundary: every surface signal points at deletion — zero reads ever, 30% of
+write volume, a real latency cost, and only a vague "legal says" behind it — and the correct
+answer is still to retain the protection in full and route the latency complaint to the
+implementation. The [evaluation suite](eval/README.md) carries that case as a
 standing regression guard for the same reason.
 
 Nothing in this skill makes deleting a security, legal, privacy, safety, compliance, or
