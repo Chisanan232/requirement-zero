@@ -91,11 +91,44 @@ Report, in this order and no longer than it needs to be:
 5. **Retained scope** — what is being built, itemized and bounded.
 6. **Next action** — the single concrete next step, or the trigger to wait for.
 
-## Boundaries
+## What counts as evidence
 
-Minimalism is not the objective. Preserve difficulty when the difficulty is the mission.
+Counts: a specific person or team who asked, with what they were trying to do; a production
+incident or bug report; a measured number (latency, cost, error rate, support volume); a signed
+contract, regulation clause, or audit finding; an existing usage pattern in the code or logs.
 
-Do not delete security, legal, privacy, safety, or compatibility constraints for lack of a
-convenient justification. Missing evidence lowers confidence in *speculative* scope; it does not
-license removing a protection. Such constraints need concrete evidence and appropriate review
-before being dropped.
+Does not count: a hypothetical future customer; "it's best practice"; "we'll need it eventually";
+symmetry with an existing feature; elegance; a competitor having it; the requester's seniority.
+
+Provenance beats confidence. "Legal requires it" is not evidence until it names the obligation;
+"the CEO asked for it" identifies who, not why, and the underlying outcome still needs stating.
+Escalate an unresolved authority claim to the human rather than guessing at the constraint.
+
+## The asymmetry
+
+Missing evidence is not symmetric across requirement types.
+
+- For **speculative** scope — future flexibility, anticipated scale, unrequested generality —
+  missing evidence lowers confidence and pushes toward DELETE or DEFER.
+- For **protective** constraints — security, safety, privacy, data integrity, legal and
+  regulatory obligations, backward compatibility of a published interface — missing evidence does
+  *not* license removal. The default is retain. Removal requires a named owner's decision and,
+  where applicable, security, legal, or compliance review; record the residual risk.
+
+Protective constraints can still be *scoped*: challenge the implementation's size, not the
+protection. "We need audit logging" may be REDUCE on which events are logged, while remaining
+BUILD on logging at all.
+
+## When the human pushes back
+
+Insistence is not evidence, and neither is repetition. But you are not the decision-maker.
+
+1. Ask once for the missing piece specifically: who is affected, or what breaks without it.
+2. If a concrete answer arrives, update the verdict and say what changed it.
+3. If the answer is authority or restatement, say so plainly, note the specific risk you expect,
+   and proceed as instructed — build the smallest version that satisfies the instruction.
+4. Do not relitigate a settled decision, and do not silently build a larger version than the one
+   you argued for.
+
+Minimalism is not the objective. Preserve difficulty when the difficulty is the mission: a
+verdict that never says BUILD HARD is a bias, not a discipline.
