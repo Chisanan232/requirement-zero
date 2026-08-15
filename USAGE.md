@@ -259,3 +259,53 @@ standing regression guard for the same reason.
 
 Nothing in this skill makes deleting a security, legal, privacy, safety, compliance, or
 compatibility constraint acceptable, easier, or optional.
+
+## Failure modes and troubleshooting
+
+All four of these are observed behaviour, not speculation.
+
+### The skill does not load at all
+
+If you launched the agent with `--safe-mode`, that is why. `--safe-mode` disables customizations,
+and skill discovery is one of the things it suppresses — the skill is not found, and nothing
+reports an error, because from the agent's point of view no skill exists. Drop the flag.
+
+If it still does not load, check the two paths that look plausible and do not work: skills are
+not discovered through `--plugin-dir`, and they are not discovered through a relocated
+`CLAUDE_CONFIG_DIR`. Confirm the file is at `~/.claude/skills/requirement-zero/SKILL.md` and ask
+the agent to list its skills.
+
+### A headless run returns nothing
+
+In non-interactive/headless mode the agent will reach a verdict and then carry straight on into
+*doing the work* — which is correct behaviour for an agent that just concluded BUILD, but it can
+exhaust a low `--max-turns` budget before anything is returned to you. If you want the verdict
+only, scope the request to the decision: ask for the verdict and the scope lists, and say that no
+implementation should follow. Otherwise budget turns for the implementation you are implicitly
+asking for.
+
+### The verdict label is noisier than the decision
+
+Verdict labels blur at the DELETE/REDUCE boundary. In this project's own evaluation, on case 01
+the model chose substantively the correct scope — it cut the entire proposed dashboard and
+retained a single alert rule on a metric that already existed — and then labelled that outcome
+**REDUCE** where the rubric expected **DELETE**. All six runs in the recorded matrix did this, in
+both arms. Case 06 shows the same effect from the other side: identical protective behaviour in
+every run, with the label diverging from the rubric.
+
+The practical consequence: **treat the named deleted and retained scope as the reviewable output,
+and the label as a summary of it.** If the two disagree, the scope lists are what you should act
+on. This is a measured limitation, written up in
+[eval/results/2026-08-15-claude-sonnet-4-6.md](eval/results/2026-08-15-claude-sonnet-4-6.md).
+
+### Cost
+
+The skill is not free. In the recorded evaluation the skill arm produced more output tokens than
+the baseline (25,899 → 31,464 across 18 calls) and ran slower (mean 30.2 s → 36.4 s per call).
+That is expected — the skill body is appended to the system prompt and the reasoning it demands
+is longer prose — but it is real, and that evaluation measured **no** downstream saving to offset
+it, because it has no implementation arm.
+
+So: do not point it at a trivial request. Its value is entirely in the cases where the answer
+turns out to be "build much less than you asked for", and a one-line change has no such answer to
+find.
