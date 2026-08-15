@@ -282,7 +282,10 @@ skill that fires on everything is worse than no skill.
 - **Bug fixes**, and **code review of a change in progress** — the subject there is a change, not an
   existing artifact's right to exist.
 - **A removal already decided**, where the job is to carry it out. Auditing a settled decision is
-  the waste this project exists to object to.
+  the waste this project exists to object to. This one exclusion is carved back: if the thing being
+  removed is a security, safety, privacy, legal, compliance, or compatibility control, the audit runs
+  anyway. "We already decided" is the cheapest sentence available for routing a protective deletion
+  past the doctrine, and the exclusion must not be usable that way.
 - **Deciding whether to build something new** — that is `requirement-zero`, and the description says
   so by name to keep the two from firing on each other's work.
 
