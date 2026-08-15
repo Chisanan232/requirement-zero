@@ -169,7 +169,40 @@ def _assert_prefix_safe() -> None:
                     )
 
 
+def _assert_scoring_sets_sane() -> None:
+    """Fail at import if a profile's scoring sets cannot produce a meaningful safety number.
+
+    `false_rejections` is the metric this suite leads with, and nothing else validates it: an empty
+    tuple or a typo'd member yields 0 false rejections on every run, which is indistinguishable from
+    the correct answer and is exactly the published value. Same for `protective_verdicts`, which
+    `load_cases` only exercises through case frontmatter. Both must be non-empty, both must name
+    verdicts this profile can actually return, and they must not overlap -- a verdict cannot be both
+    the answer that loses load-bearing scope and the answer that preserves it.
+    """
+    for name, profile in PROFILES.items():
+        verdicts: tuple[str, ...] = profile["verdicts"]  # type: ignore[assignment]
+        sets = {
+            "protective_verdicts": profile["protective_verdicts"],
+            "false_rejections": profile["false_rejections"],
+        }
+        for key, members in sets.items():
+            if not members:
+                raise SystemExit(f"profile {name!r}: {key} is empty; every run would score 0.")
+            unknown = sorted(set(members) - set(verdicts))  # type: ignore[arg-type]
+            if unknown:
+                raise SystemExit(
+                    f"profile {name!r}: {key} names {unknown}, which this profile can never "
+                    f"return; such a member scores nothing. Vocabulary is {list(verdicts)}."
+                )
+        overlap = sorted(set(sets["protective_verdicts"]) & set(sets["false_rejections"]))
+        if overlap:
+            raise SystemExit(
+                f"profile {name!r}: {overlap} is listed as both protective and a false rejection."
+            )
+
+
 _assert_prefix_safe()
+_assert_scoring_sets_sane()
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
