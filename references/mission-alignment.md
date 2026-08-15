@@ -4,8 +4,8 @@ Load this when a requirement survives DELETE and the question is whether it is c
 mission-critical difficulty that must not be simplified away.
 
 This file exists because the common failure of a subtraction-first practice is not over-building —
-it is refusing to build the one expensive thing that the system's value depends on. A discipline
-that only ever shrinks scope is a bias with good branding.
+it is refusing to build the one expensive thing that the system's value depends on. If a run of
+verdicts never reaches BUILD HARD, the discipline is miscalibrated, not rigorous.
 
 ## Identifying the core value
 
