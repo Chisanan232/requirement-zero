@@ -36,6 +36,12 @@ UNPARSEABLE = "UNPARSEABLE"  # model answered, but no readable VERDICT line: a r
 ERRORED = "ERRORED"          # CLI/harness failure: excluded from match-rate denominators
 CALL_TIMEOUT_S = 300
 
+# Claude Code truncates a skill listing entry's combined `description` and `when_to_use` at this
+# many characters (host default; raisable via `skillListingMaxDescChars`). Over it, the entry is
+# shortened rather than rejected -- which keeps the skill's name and can drop the exclusions at the
+# end of the description. Neither skill here uses `when_to_use`, so this is the description budget.
+DESCRIPTION_CAP = 1536
+
 # Both arms receive this identical prompt, including the verdict vocabulary and an explicit
 # licence to build nothing. That makes the baseline deliberately strong; see eval/README.md.
 PROMPT_TEMPLATE = """You are an engineer deciding what to do about an incoming requirement.
@@ -138,6 +144,7 @@ PROFILES: dict[str, dict[str, object]] = {
         "verdicts": ("BUILD HARD", "DELETE", "REDUCE", "DEFER", "BUILD"),
         "protective_verdicts": ("BUILD", "BUILD HARD"),
         "false_rejections": ("DELETE", "DEFER"),
+        "required_description_terms": ("safety", "security", "legal", "compliance"),
     },
     "codebase-zero": {
         "skill_path": REPO_ROOT / "skills" / "codebase-zero" / "SKILL.md",
@@ -146,6 +153,12 @@ PROFILES: dict[str, dict[str, object]] = {
         "verdicts": ("DEFER CLEANUP", "DELETE", "CONSOLIDATE", "SIMPLIFY", "KEEP", "INVEST"),
         "protective_verdicts": ("KEEP", "INVEST"),
         "false_rejections": ("DELETE", "CONSOLIDATE", "SIMPLIFY"),
+        # The carve-back categories. Each must survive in the description, because the
+        # already-decided exclusion routes past the audit and only these words pull it back.
+        "required_description_terms": (
+            "security", "safety", "privacy", "data-integrity", "legal", "compliance",
+            "compatibility", "requirement-zero",
+        ),
     },
 }
 
@@ -337,6 +350,45 @@ SELF_TEST_CASES = (
 )
 
 
+def _parsed_description(skill_path: Path) -> str:
+    """The `description` as the host sees it, with YAML's enclosing quotes removed if present."""
+    meta, _ = parse_frontmatter(skill_path.read_text(encoding="utf-8"))
+    value = meta.get("description", "")
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+        value = value[1:-1]
+    return value
+
+
+def check_descriptions() -> list[str]:
+    """The `description` is the trigger surface, and nothing else in this repository checks it.
+
+    It decides whether the skill is selected at all, so an exclusion dropped from it cannot be
+    recovered by any rule in the body -- the body is never read. It is also the field most often
+    edited and the one whose length was twice measured wrong. Three things are checked: it exists,
+    it fits the host's per-entry listing cap, and it still names every term the profile declares
+    load-bearing. A term silently dropped during an edit fails here rather than in production.
+    """
+    problems = []
+    for name, profile in PROFILES.items():
+        skill_path: Path = profile["skill_path"]  # type: ignore[assignment]
+        required: tuple[str, ...] = profile["required_description_terms"]  # type: ignore[assignment]
+        description = _parsed_description(skill_path)
+        if not description:
+            problems.append(f"[{name}] {skill_path.name} has no description; the skill cannot be "
+                            f"selected on anything but its name.")
+            continue
+        if len(description) > DESCRIPTION_CAP:
+            problems.append(f"[{name}] description is {len(description)} chars, over the "
+                            f"{DESCRIPTION_CAP}-char listing cap; the entry would be truncated and "
+                            f"the exclusions are at the end.")
+        missing = [term for term in required if term not in description]
+        if missing:
+            problems.append(f"[{name}] description no longer names {missing}; each is a category "
+                            f"the body treats as load-bearing, and the description is the only "
+                            f"place that can keep the skill from being routed past it.")
+    return problems
+
+
 def self_test() -> int:
     failures = [
         (profile, raw, expected, got)
@@ -347,7 +399,12 @@ def self_test() -> int:
         print(f"FAIL [{profile}] {raw!r}: expected {expected!r}, got {got!r}")
     print(f"{len(SELF_TEST_CASES) - len(failures)}/{len(SELF_TEST_CASES)} "
           f"verdict-extraction cases pass across {len(PROFILES)} profile vocabularies")
-    return 1 if failures else 0
+    description_problems = check_descriptions()
+    for problem in description_problems:
+        print(f"FAIL {problem}")
+    print(f"{len(PROFILES) - len(description_problems)}/{len(PROFILES)} skill descriptions "
+          f"present, within the {DESCRIPTION_CAP}-char listing cap, and naming their required terms")
+    return 1 if failures or description_problems else 0
 
 
 def call_claude(prompt: str, system_prompt: str | None) -> dict[str, object]:
