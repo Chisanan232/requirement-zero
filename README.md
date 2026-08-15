@@ -55,6 +55,15 @@ Deleting is attempted before simplifying, because simplifying something unnecess
 work. Automating comes last, because automating an unproven workflow just makes an unnecessary
 process cheaper to keep.
 
+## Worked examples
+
+[**examples/index.md**](examples/index.md) has six full decisions, one per verdict plus a safety
+case, each showing the requirement as it arrived, the evidence, the verdict, and the itemized
+deleted and retained scope. If you read two, read
+[the DELETE case](examples/delete-assumed-dashboard.md) and
+[the BUILD HARD case](examples/build-hard-dispatch-optimizer.md) — they are the two ends of the
+range.
+
 ## What it is not
 
 **Not a persona or a celebrity chatbot.** The methodology is inspired by subtraction-first,
