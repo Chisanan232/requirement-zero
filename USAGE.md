@@ -71,7 +71,14 @@ is on disk at all.
 Ask the agent to list the skills available to it. `requirement-zero` should appear. That check
 is the one used to verify the install path in this document.
 
-Skills are **not** discovered via `--plugin-dir`, established by testing.
+`--plugin-dir` is not the install path this document recommends, but it is not inert either. On
+Claude Code 2.1.226, `claude --plugin-dir <clone>` loads the clone as an inline plugin and a live
+session lists `<dir>:codebase-zero` — the nested skill, namespaced to the directory — while the root
+`SKILL.md` is shadowed and `requirement-zero` is absent. Remove `skills/` and the same probe reports
+`requirement-zero` instead. So the flag gives you one skill under a plugin namespace, not the pair
+under their own names, which is why the symlink below is the documented route. An earlier note here
+claimed skills were not discovered via `--plugin-dir` at all; that was tested against an earlier CLI
+and is wrong for this version.
 
 Setting `CLAUDE_CONFIG_DIR` *does* relocate discovery on Claude Code 2.1.226: a skill under
 `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` is listed by the agent. An earlier note here said it did
@@ -480,8 +487,9 @@ If you launched the agent with `--safe-mode`, that is why: testing established t
 suppresses skill discovery, so the skill is simply not found. The flag is the only signal to go on,
 which is what makes this one confusing to debug. Drop it.
 
-If it still does not load, check the path that looks plausible and does not work: skills are not
-discovered through `--plugin-dir`. Confirm the file is at
+If it still does not load, check whether you reached for `--plugin-dir <clone>`. That flag does load
+a skill, but not the one you asked for under the name you expect: on 2.1.226 it surfaces
+`<dir>:codebase-zero` and shadows the root `requirement-zero` entirely. Confirm the file is at
 `~/.claude/skills/requirement-zero/SKILL.md` and ask the agent to list its skills.
 
 If you are looking for `codebase-zero` specifically and only `requirement-zero` appears, the cause
@@ -540,9 +548,10 @@ with no install tooling, no package manager, and no configuration changes, then:
    both correctly declined as out of scope, each citing the exclusion that the `description`
    frontmatter states.
 
-Also established during that testing, and recorded here so nobody repeats it: skills are not
-discovered via `--plugin-dir`, and a skill nested inside another skill's directory is not discovered
-either. `~/.claude/skills/` is the path that works. `CLAUDE_CONFIG_DIR` does relocate discovery on
+Also established during that testing, and recorded here so nobody repeats it: a skill nested inside
+another skill's directory is not discovered, and `--plugin-dir <clone>` loads that nested skill but
+under a plugin namespace and at the cost of shadowing the root one. `~/.claude/skills/` is the path
+that works. `CLAUDE_CONFIG_DIR` does relocate discovery on
 this version — see [Confirming it installed](#confirming-it-installed) for why that is a testing
 convenience rather than an install path.
 
