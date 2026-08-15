@@ -328,16 +328,19 @@ that made it decline, a headless failure mode, measured cost. The equivalent for
 be a claim this project has not earned yet. What exists is:
 
 - **Install and discovery: verified.** See
-  [Installing Codebase Zero](#installing-codebase-zero-the-sibling-skill) — listed, body loaded,
-  `references/` read through the symlink, and one audit request that fired the skill and returned
-  KEEP on a protective mechanism with all seven fields present.
+  [Installing Codebase Zero](#installing-codebase-zero-the-sibling-skill) — listed alongside
+  `requirement-zero`, body loaded, and `references/` read through the symlink.
 - **Judgement: measured on constructed cases.** 42 CLI calls, 21/21 expected verdicts against a
   baseline's 17/21, no removal recommended for any load-bearing artifact in either arm. Read
   [the results](eval/codebase-zero/results/2026-08-15-claude-sonnet-4-6.md) including its
   limitations, of which the largest is that the evaluation gives the agent no tools, so the
   evidence-gathering half of the skill is **untested**.
-- **Trigger and non-trigger behaviour: not systematically tested.** The trigger surface is argued
-  from the `description`, not observed across a set of requests the way Requirement Zero's was.
+- **Trigger and non-trigger behaviour: two boundaries observed, not a systematic sweep.** Given the
+  idempotency-guard audit above, the skill fired without being named, stated the mission, reached
+  KEEP, and separated "the original requirement is gone" from "the reason cannot be found" — the
+  distinction its own procedure draws. Given "we already decided to delete this, nothing left to
+  decide", it declined, citing the exclusion the `description` states. Two requests is two
+  requests; Requirement Zero's trigger section rests on more.
 - **Cost: not separately measured** outside the evaluation above.
 
 Treat the untested parts as untested.
