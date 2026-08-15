@@ -133,3 +133,65 @@ the method.
 **Trivial requests.** Nothing in the skill stops you asking for a verdict on a one-line change,
 but the analysis costs tokens and time (see [Cost](#cost)) and produces nothing you did not
 already know.
+
+## Reading a verdict
+
+Every run ends in exactly one of five verdicts. The skill is required to commit — it must not
+present the five as options for you to pick from, and it must not hedge into "it depends".
+
+Whatever the verdict, the run owes you the same six-part report: the fundamental objective, the
+evidence and its provenance, the verdict, the **deleted scope** itemized, the **retained scope**
+itemized, and one concrete next action. The two scope lists are the reviewable part. "Simplified
+the design" is not a reviewable output; "removed the plugin registry, the YAML config, and the
+two unused adapters" is.
+
+### DELETE — build nothing
+
+No observer and no signal could be named for the requirement as a whole, or the system already
+does this.
+
+*What you owe it:* a decision. Either accept it and close the request, or supply the missing
+piece — who is affected, or what breaks without it. Do not argue with it by restating the
+request; that changes nothing and the skill will say so.
+
+### REDUCE — the need is real, the proposed scope is not
+
+The core outcome survived, but named parts did not. This is the most common correct answer for a
+real request.
+
+*What you owe it:* read the deleted-scope list, item by item, and object to any item you
+disagree with. That list is the whole product of a REDUCE verdict. If you accept it, hold the
+implementation to it — deleted scope most often returns during implementation as "easy while I'm
+here".
+
+### DEFER — plausible, but nothing is blocked today
+
+Value is real or plausible but the only support is a prediction, or the value is genuinely
+adjacent to the core. A DEFER verdict must name the **concrete trigger** that would revive it.
+
+*What you owe it:* check that the trigger is something that will actually be noticed when it
+happens — a customer signing, a second format arriving, a measured number crossing a threshold.
+A trigger nobody will observe is a DELETE wearing a nicer label. Then park the request against
+that trigger rather than leaving it in a backlog to rot.
+
+### BUILD — necessary, and build the smallest sufficient version
+
+Evidence supports the outcome and it is core to what the system is for.
+
+*What you owe it:* build the retained scope and nothing beyond it. If implementation reveals the
+retained scope is insufficient, stop and re-state the verdict with the new information rather
+than silently expanding.
+
+### BUILD HARD — the difficulty is the mission, do not simplify it away
+
+Core, and the cheap version provably fails the outcome. This verdict exists because a method
+that can only shrink things is a bias, not a discipline — minimalism is not the objective.
+
+*What you owe it:* **check its homework.** A BUILD HARD verdict is invalid unless it names both
+(a) the simpler version it considered and (b) the specific way that simpler version fails the
+outcome. If either is missing, it must be downgraded to BUILD and re-sized. That check is the
+only thing preventing BUILD HARD from becoming a rubber stamp for expensive work, so make it
+every time.
+
+For a worked decision in each direction, see [examples/index.md](examples/index.md) — six full
+cases, one per verdict plus a safety case.
