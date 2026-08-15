@@ -327,10 +327,13 @@ If you launched the agent with `--safe-mode`, that is why: testing established t
 suppresses skill discovery, so the skill is simply not found. The flag is the only signal to go on,
 which is what makes this one confusing to debug. Drop it.
 
-If it still does not load, check the two paths that look plausible and do not work: skills are
-not discovered through `--plugin-dir`, and they are not discovered through a relocated
-`CLAUDE_CONFIG_DIR`. Confirm the file is at `~/.claude/skills/requirement-zero/SKILL.md` and ask
-the agent to list its skills.
+If it still does not load, check the path that looks plausible and does not work: skills are not
+discovered through `--plugin-dir`. Confirm the file is at
+`~/.claude/skills/requirement-zero/SKILL.md` and ask the agent to list its skills.
+
+If you are looking for `codebase-zero` specifically and only `requirement-zero` appears, the cause
+is nesting: a skill directory inside another skill's directory is not discovered, silently. See
+[Installing Codebase Zero](#installing-codebase-zero-the-sibling-skill).
 
 ### A headless run returns nothing
 
@@ -385,8 +388,10 @@ with no install tooling, no package manager, and no configuration changes, then:
    frontmatter states.
 
 Also established during that testing, and recorded here so nobody repeats it: skills are not
-discovered via `--plugin-dir` or via `CLAUDE_CONFIG_DIR`; `~/.claude/skills/` is the path that
-works.
+discovered via `--plugin-dir`, and a skill nested inside another skill's directory is not discovered
+either. `~/.claude/skills/` is the path that works. `CLAUDE_CONFIG_DIR` does relocate discovery on
+this version — see [Confirming it installed](#confirming-it-installed) for why that is a testing
+convenience rather than an install path.
 
 ### Codex and other Agent Skills-compatible hosts — NOT tested
 
