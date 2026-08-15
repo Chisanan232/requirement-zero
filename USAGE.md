@@ -67,12 +67,15 @@ is on disk at all.
 Ask the agent to list the skills available to it. `requirement-zero` should appear. That check
 is the one used to verify the install path in this document.
 
-Two things that do **not** work, both established by testing:
+Skills are **not** discovered via `--plugin-dir`, established by testing.
 
-- Skills are not discovered via `--plugin-dir`.
-- Skills are not discovered via a relocated `CLAUDE_CONFIG_DIR`.
+Setting `CLAUDE_CONFIG_DIR` *does* relocate discovery on Claude Code 2.1.226: a skill under
+`$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` is listed by the agent. An earlier note here said it did
+not, based on a test against an earlier CLI; that note was wrong for this version. It is useful for
+testing an install in isolation rather than something to rely on for a normal install — the
+behaviour is version-dependent and was observed on one version only.
 
-`~/.claude/skills/` is the path that works.
+`~/.claude/skills/` is the path to use.
 
 ## Invoking it
 
