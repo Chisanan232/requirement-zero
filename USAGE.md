@@ -308,7 +308,7 @@ character budget that scales with the context window, and
 [shortens or drops descriptions](https://code.claude.com/docs/en/skills#skill-descriptions-are-cut-short)
 — least-used skills first — when the listing overflows, capping each entry's combined
 `description` and `when_to_use` text at 1,536 characters regardless of budget. Codebase Zero's
-parsed `description` is 1,011 characters and it has no `when_to_use`, so the per-entry cap is not the
+parsed `description` is 1,009 characters and it has no `when_to_use`, so the per-entry cap is not the
 binding constraint, but a crowded skills directory is: a truncated description keeps the name and can
 lose the exclusions. If either skill starts firing on work it names as excluded, check the listing
 budget with `/context` and `/doctor` before assuming the doctrine failed. Both limits are
