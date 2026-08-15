@@ -7,19 +7,30 @@ Before Requirement #1 comes Requirement #0: prove that the requirement deserves 
 Requirement Zero is an [Agent Skill](https://code.claude.com/docs/en/skills) that makes an AI
 coding agent challenge a requirement *before* it plans or writes code.
 
+This repository holds two skills. **Requirement Zero** challenges a requirement before it is built.
+**[Codebase Zero](skills/codebase-zero/SKILL.md)** audits an artifact that already exists and asks
+whether it still deserves to exist — see [that section](#codebase-zero) below.
+
 ## Install
 
 ```bash
 git clone https://github.com/Chisanan232/requirement-zero.git ~/.claude/skills/requirement-zero
+ln -s ~/.claude/skills/requirement-zero/skills/codebase-zero ~/.claude/skills/codebase-zero
 ```
 
-That is all of it. The repository root *is* the skill directory — `SKILL.md` is at the top level —
-so there is nothing to build, install, or configure afterwards, and updating is `git pull`. The
-agent then invokes it on its own when a request matches, or you can ask for it by name.
+The first line installs Requirement Zero: the repository root *is* the skill directory — `SKILL.md`
+is at the top level — so there is nothing to build or configure, and updating is `git pull`. The
+second line installs Codebase Zero, and it is needed because a skill nested inside another skill's
+directory is **not** discovered — tested, not assumed. The symlink points into the clone, so
+`git pull` still updates both.
 
-[USAGE.md](USAGE.md) covers the rest: when it fires and when it must not, how to read each
-verdict, how it interacts with your project's existing safety and compliance constraints, known
-failure modes, and which hosts this has actually been tested on.
+The agent then invokes either skill on its own when a request matches, or you can ask for one by
+name.
+
+[USAGE.md](USAGE.md) covers the rest: both install paths and what was actually tested, when each
+skill fires and when it must not, how to read each verdict, how they interact with your project's
+existing safety and compliance constraints, known failure modes, and which hosts this has actually
+been tested on.
 
 ## The problem
 
@@ -89,6 +100,9 @@ require concrete evidence and appropriate review before anything is dropped.
 
 ## Evaluation
 
+Requirement Zero's published run below. Codebase Zero has its own suite and its own published run:
+[**eval/codebase-zero/**](eval/codebase-zero/).
+
 There is one published run: 36 CLI calls, `claude-sonnet-4-6`, six adversarial cases, two arms
 (baseline and skill-enabled), three runs per cell. Full write-up in
 [**eval/results/2026-08-15-claude-sonnet-4-6.md**](eval/results/2026-08-15-claude-sonnet-4-6.md);
@@ -115,6 +129,40 @@ movements in both directions, not a lift.
 
 Reproducing it needs Python 3 and the `claude` CLI and nothing else: `python3 eval/run_eval.py`.
 
+## Codebase Zero
+
+Requirement Zero acts before anything is built. **[Codebase Zero](skills/codebase-zero/SKILL.md)**
+is the sibling skill for the stage after: a codebase that has accumulated abstractions, compatibility
+layers, dependencies, flags, configuration, and operational machinery, where the question is no
+longer *should we build this* but **does this still deserve to exist?**
+
+It audits an artifact against the system's mission, gathers evidence from references, tests,
+configuration, and git history, and commits to one of six verdicts:
+
+| Verdict | Meaning |
+|---|---|
+| **DELETE** | No current dependent, no observer of its absence, original requirement gone. |
+| **CONSOLIDATE** | Several artifacts do one job; the behaviour stays and one survives. |
+| **SIMPLIFY** | The behaviour is justified; the structure around it is not. |
+| **DEFER CLEANUP** | Looks removable, but the evidence or the risk does not justify acting now. |
+| **KEEP** | It still earns its place. |
+| **INVEST** | Expensive and complex, *and* where the mission is won or lost. Spend more here. |
+
+It **audits by default** and does not delete code on its own authority. Every non-trivial verdict
+carries seven fields — objective, evidence, confidence, blast radius, benefit and cost, what is
+retained, and the verification that would catch a mistake.
+
+The reason it is not a dead-code detector: the three cases it is built around are ones where every
+in-repository signal points at deletion and deletion would be expensive — a three-year-untouched file
+that is still a live customer contract, a payment guard whose counter has not fired in fourteen
+months, and the highest-churn subsystem in the repository, which is where the next quarter should go.
+A static analyzer is better than this at finding unreferenced symbols and should be run first;
+[skills/codebase-zero/DIFFERENTIATION.md](skills/codebase-zero/DIFFERENTIATION.md) states that
+overlap plainly, including when to use the other tool instead.
+
+Seven worked audits: [skills/codebase-zero/examples/index.md](skills/codebase-zero/examples/index.md).
+Evaluation: [eval/codebase-zero/](eval/codebase-zero/).
+
 ## Who it is for
 
 Engineers using AI coding agents on real systems, where the agent is fast enough that
@@ -124,35 +172,43 @@ rather review a challenged requirement than a well-implemented mistake.
 ## Repository layout
 
 ```
-SKILL.md      the skill itself, kept deliberately compact
-references/   supporting methodology in 4 files, loaded only when needed
-examples/     6 worked decisions, one per verdict plus a safety case, and an index
-eval/         the evaluation harness, 6 input cases, and published results
-USAGE.md      installation, triggers, verdicts, safety boundaries, compatibility
-README.md     this file
-LICENSE       MIT
+SKILL.md                  Requirement Zero, kept deliberately compact
+references/               supporting methodology in 4 files, loaded only when needed
+examples/                 6 worked decisions, one per verdict plus a safety case, and an index
+skills/codebase-zero/     Codebase Zero: SKILL.md, 3 references, 7 worked audits,
+                          and DIFFERENTIATION.md
+eval/                     the shared harness, Requirement Zero's 6 cases, published results
+eval/codebase-zero/       Codebase Zero's 7 cases and published results
+USAGE.md                  installation, triggers, verdicts, safety boundaries, compatibility
+README.md                 this file
+LICENSE                   MIT
 ```
 
-The skill is a Markdown file: there is no CLI, server, package, or runtime to install.
+Both skills are Markdown files: there is no CLI, server, package, or runtime to install. One
+evaluation harness serves both, selected with `--profile`, rather than a second copy of the same
+script.
 
 ## Status
 
-v0.1. The skill, its references, the worked examples, the evaluation suite, and the usage
-documentation are all in the tree and usable. The verdict set, the ordered discipline, and the
-repository layout are settled.
+v0.2. Requirement Zero is unchanged and settled: verdict set, ordered discipline, references,
+examples, evaluation. Codebase Zero is new in this version — the skill, three references, seven
+worked audits, a differentiation document, and a seven-case evaluation are all in the tree and
+usable.
 
-Tested on Claude Code. Not tested on Codex or any other Agent Skills-compatible host — see
+Tested on Claude Code 2.1.226. Not tested on Codex or any other Agent Skills-compatible host — see
 [USAGE.md](USAGE.md#compatibility) for exactly what was and was not run, and what verifying
 another host would take.
 
-## What v0.1 contains
+## What is in the tree
 
-- `SKILL.md` — the skill, deliberately compact
+- `SKILL.md` — Requirement Zero, deliberately compact
 - `references/` — four supporting documents, loaded only when the agent needs one
 - `examples/` — six worked decisions, one per verdict plus a safety case, with an index
-- `eval/` — the harness, six adversarial input cases, and one published run
-- `USAGE.md` — installation, triggers and non-triggers, verdicts, safety boundaries, failure
-  modes, compatibility
+- `skills/codebase-zero/` — Codebase Zero: the skill, three references, seven worked audits, and a
+  document stating where it overlaps with existing tools and when to use those instead
+- `eval/` — one harness with two profiles, thirteen adversarial cases in total, and published runs
+- `USAGE.md` — installation for both skills, triggers and non-triggers, verdicts, safety boundaries,
+  failure modes, compatibility
 
 What it deliberately does not contain, because none of it is needed to install or run a Markdown
 skill:
