@@ -295,7 +295,11 @@ editing either skill's `description` — the description is the trigger surface,
 from it cannot be recovered by anything in the skill body, and `--self-test` is what notices. The
 category checks for Codebase Zero are anchored to the carve-back clause rather than run against the
 whole field, because a term can appear elsewhere in the description while the clause that uses it has
-been reworded or dropped.
+been reworded or dropped. The anchor is that clause's opening quoted verbatim in the profile, so
+rewording the sentence — even harmlessly — means editing `carve_back_anchor` in `run_eval.py` to
+match. That is deliberate: the alternative is an anchor loose enough to match a rewrite that changed
+the meaning. What the check still cannot see is the clause left intact and then negated by a
+following sentence.
 
 ## Limitations
 
