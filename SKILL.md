@@ -132,3 +132,16 @@ Insistence is not evidence, and neither is repetition. But you are not the decis
 
 Minimalism is not the objective. Preserve difficulty when the difficulty is the mission: a
 verdict that never says BUILD HARD is a bias, not a discipline.
+
+## References
+
+Load only the one that matches the step you are on.
+
+- [references/workflow.md](references/workflow.md) — when to run the discipline at all, stopping
+  rules, evidence gathering, and applying it to a plan or to mid-implementation scope.
+- [references/provenance.md](references/provenance.md) — resolving "legal says", "architecture
+  requires", "best practice", "the CEO asked", and what to do when nobody can be asked.
+- [references/deletion.md](references/deletion.md) — the observer/signal test, the full list of
+  parts to enumerate, per-case deletion rules, and deletion that needs an owner's decision.
+- [references/mission-alignment.md](references/mission-alignment.md) — defining core value,
+  classifying adjacent work, and the four-part bar for BUILD HARD.
