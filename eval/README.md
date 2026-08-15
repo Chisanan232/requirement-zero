@@ -81,11 +81,15 @@ both profiles, makes no API calls and costs nothing). Nothing else — this is a
 platform.
 
 Each profile carries its own skill path, case directory, prompt, verdict vocabulary, and definition
-of a false rejection, so adding the second skill did not require a second copy of the harness. Two
+of a false rejection, so adding the second skill did not require a second copy of the harness. Three
 things a profile cannot get wrong quietly: guard cases are selected by their `guard:` frontmatter key
 rather than by filename, so a corpus that numbers its cases differently cannot silently lose its
-guards, and a case that declares `guard:` while expecting a scope-losing verdict is rejected at load
-time, because such a guard would inflate the guard run count while being structurally unable to fail.
+guards; a case that declares `guard:` while expecting a scope-losing verdict is rejected at load
+time, because such a guard would inflate the guard run count while being structurally unable to fail;
+and each profile's `protective_verdicts` and `false_rejections` are checked at import to be non-empty,
+to name verdicts the profile can actually return, and not to overlap. That last check exists because
+an empty or typo'd `false_rejections` scores zero on every run, which is exactly the published value
+and therefore indistinguishable from the correct answer.
 
 The harness resolves all paths relative to its own location, so it behaves identically from any
 working directory.
