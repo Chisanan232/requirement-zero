@@ -190,6 +190,7 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
 def load_cases(profile: dict[str, object], case_filter: str | None) -> list[dict[str, object]]:
     cases_dir: Path = profile["cases_dir"]  # type: ignore[assignment]
     verdicts: tuple[str, ...] = profile["verdicts"]  # type: ignore[assignment]
+    protective: tuple[str, ...] = profile["protective_verdicts"]  # type: ignore[assignment]
     cases = []
     for path in sorted(cases_dir.glob("*.md")):
         if case_filter and not path.name.startswith(case_filter):
@@ -202,6 +203,16 @@ def load_cases(profile: dict[str, object], case_filter: str | None) -> list[dict
             raise ValueError(f"{path.name}: bad expected_verdict {meta['expected_verdict']!r}")
         if not (path.parent / meta["example"]).resolve().is_file():
             raise ValueError(f"{path.name}: example path does not resolve: {meta['example']}")
+        # A guard fails when the arm reaches a scope-losing verdict on something the case
+        # establishes as load-bearing, so a guard on a case that expects a scope-losing verdict can
+        # never fail. Rejecting it here is the difference between an armed guard and a decorative
+        # one that inflates guard_scored_runs while guard_failures stays structurally at zero.
+        if meta.get("guard") and meta["expected_verdict"] not in protective:
+            raise ValueError(
+                f"{path.name}: declares guard {meta['guard']!r} but expects "
+                f"{meta['expected_verdict']!r}, which is not one of {protective}. Such a guard can "
+                f"never fail."
+            )
         cases.append({"file": path.name, "meta": meta, "body": body})
     if not cases:
         raise SystemExit(f"no cases matched {case_filter!r} under {cases_dir}")
