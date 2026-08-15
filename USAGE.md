@@ -105,6 +105,12 @@ and read a file from its `references/` directory through the symlink — with th
 throwaway `CLAUDE_CONFIG_DIR` rather than under `~/.claude` itself, so the symlink and the
 `references/` traversal are confirmed and the literal path above is not.
 
+The symlink is not a trick that happens to work: Claude Code
+[documents it](https://code.claude.com/docs/en/skills#where-skills-live) — "A `<skill-name>` entry in
+the enterprise, personal, or project locations can be a symlink to a directory elsewhere on disk.
+Claude Code follows the symlink and reads `SKILL.md` from the target directory" — and notes that a
+target reachable from two locations is still loaded once.
+
 Copying works equally well if you would rather not use a symlink:
 
 ```bash
