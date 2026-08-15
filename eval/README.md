@@ -28,10 +28,11 @@ case's expected verdict. Aggregated per arm:
 | **Majority verdict** | Most frequent verdict across the N runs for one case × arm. Ties are reported as `TIE(...)`, never resolved silently. |
 | **False rejections** | Runs where the arm answered DELETE or DEFER but the expected verdict was BUILD or BUILD HARD. This is the under-building / over-refusal risk. **A low match rate with zero false rejections is a very different result from a low match rate with several, and this number is the one that separates them.** |
 | **Guard failures** | False rejections specifically on the case marked `guard: safety-constraint-not-deleted`. Any non-zero value here means the suite caught over-aggressive deletion, and is reported loudly by the harness. |
-| **Unparseable** | Runs with no readable `VERDICT:` line. Counted as non-matches. Never guessed at. |
+| **Unparseable** | Runs where the model answered but produced no readable `VERDICT:` line. Counted as non-matches. Never guessed at. |
+| **Errored** | Runs where the CLI itself failed (`is_error`, or empty result — e.g. the turn was consumed by an attempted tool call). Reported separately and **excluded from match-rate denominators**, because a harness failure is not a wrong answer. Non-zero means the run needs investigating before any number is quoted. |
 | Output / input / cache-creation / cache-read tokens, cost, duration | Taken verbatim from the CLI's JSON `usage` and `total_cost_usd`. |
 | Model string | Taken from the CLI's `modelUsage` key, so the recorded model is the one actually served, not the one requested. |
-| Named its non-built scope | Floor check: did the response state what it is *not* building. Both arms are asked for that section, so this sits at ceiling in both and is a sanity check, not a discriminator. |
+| Named its non-built scope | Floor check only: did the response state what it is *not* building. Both arms are asked for that section, so it sits at ceiling in both. It is **non-discriminating by construction** and must not be read as an arm difference — see the disclosure in the results file. |
 
 ## What is NOT measured, and why
 
@@ -68,8 +69,12 @@ python3 eval/run_eval.py --runs 1 --case 01
 python3 eval/run_eval.py --runs 1 --case 06 --arm skill
 ```
 
-Flags: `--runs N`, `--case <filename prefix>`, `--arm baseline|skill`. Nothing else — this is a
-script, not a platform.
+Flags: `--runs N`, `--case <filename prefix>`, `--arm baseline|skill`, and `--self-test` (checks
+verdict parsing against known-tricky strings, makes no API calls and costs nothing). Nothing else —
+this is a script, not a platform.
+
+The harness resolves all paths relative to its own location, so it behaves identically from any
+working directory.
 
 Output goes to `eval/results/<UTC-date>-<model>.json`, containing the configuration, every run's
 metrics, and every full response text for human review. Runs made with any flag set are suffixed
@@ -82,12 +87,18 @@ from the JSON, so that no narrative claim exists which a person did not check ag
 Both arms call:
 
 ```
-claude -p <prompt> --output-format json --model sonnet --max-turns 1 --allowed-tools ""
+claude -p <prompt> --output-format json --model sonnet --max-turns 1 --tools "" --safe-mode
 ```
 
 The **skill** arm adds exactly one thing: `--append-system-prompt` carrying the verbatim body of
 `../SKILL.md`, read from disk at run time. The skill is never copied into the harness, so the
-evaluation always tests the skill that actually ships.
+evaluation always tests the skill that actually ships. Each results file records a SHA-256 of the
+exact skill body used, so the version under test is machine-verifiable rather than pinned by a
+hand-typed commit reference. If `SKILL.md` ever loses its body, the harness aborts rather than
+running two silently identical arms.
+
+`--tools ""` and `--safe-mode` are load-bearing for validity, not incidental — see
+[Isolation](#isolation).
 
 Everything else is identical: same user prompt, same model, same turn limit, same tool policy.
 
@@ -114,9 +125,59 @@ agent. The comparison is conservative by construction. Conversely, if the skill 
 advantage, that does not mean the skill has no effect on a real unprimed agent — it means it has
 little effect *once an agent has already been told to consider not building*.
 
-A second conservative factor: `--allowed-tools ""` means the agent cannot read files. The skill arm
-receives `SKILL.md` and nothing else — `../references/` is never loaded. What is measured is the
-compact skill alone, without the progressive disclosure it is designed to use.
+A second conservative factor: `--tools ""` means the agent has no tools, so it cannot read files.
+The skill arm receives `SKILL.md` and nothing else — `../references/` is never loaded. What is
+measured is the compact skill alone, without the progressive disclosure it is designed to use.
+
+## Isolation
+
+Two flags exist purely to make the comparison valid. Both were added after an earlier run was found
+to be contaminated, and both are worth understanding before trusting any number here.
+
+### `--safe-mode` — no ambient project instructions
+
+Claude Code discovers `CLAUDE.md` files from the working directory upward and prepends them to the
+system prompt. That is useful in normal work and fatal here: **whatever engineering guidance happens
+to sit above the checkout gets injected into both arms.** If that guidance says anything about
+scope, minimalism, or not adding unrequested abstractions — which such files very often do — then
+the "baseline" is not a baseline at all. It is an agent already carrying a partial, uncontrolled
+paraphrase of the skill under test, and the measured effect of the skill shrinks toward zero for a
+reason that has nothing to do with the skill.
+
+This was not hypothetical. In this repository's environment an ambient file 40,000 characters long
+sat two directories above the checkout, and a probe under the old flags returned the sentence
+*"Propose the smallest change that achieves the goal"* verbatim when the agent was asked whether its
+instructions covered proposing minimal changes. Measured input per call fell from roughly 35,000
+tokens to about 3,400 once `--safe-mode` was added, and cost per call fell from about $0.10 to about
+$0.03.
+
+`--safe-mode` suppresses that discovery, which has a second benefit: **the run stops depending on
+the machine it runs on.** Without it, the same command in the same repo produces different prompts
+for different users, and "reproducible" is not a claim anyone can make. `--append-system-prompt`
+still works under `--safe-mode`, so the skill arm is unaffected — verified with a sentinel probe
+before adopting it.
+
+Residual, stated plainly: `--safe-mode` removes *project* instruction files, not the CLI's own
+built-in system prompt. Probed directly, that built-in prompt still contains generic
+minimal-change guidance of its own. So the baseline is *still* not a naive agent, and this remains a
+conservative comparison — it is simply no longer contaminated by an uncontrolled, machine-specific
+file. This residual applies equally to both arms and cannot be removed through this CLI.
+
+### `--tools ""` — tools actually removed
+
+`--allowed-tools ""` does **not** disable tools. It is a permission allow-list: the tools stay in
+the model's schema, and an attempted call is denied, which consumes the single allowed turn and
+returns `is_error: true` with no result text. `--tools ""` removes the tools from the schema
+outright. Verified both ways with a probe that asks the agent to read a file: under
+`--allowed-tools ""` the run failed with `error_max_turns` and an empty result; under `--tools ""`
+the run succeeded in one turn.
+
+This matters twice over. It is what actually substantiates the claim above that `../references/`
+can never be loaded, and it removes a silent-failure path: a failed run returns no text, which
+would parse as a missing verdict and be scored as a *wrong answer* rather than as an error. The
+harness now records such runs as `ERRORED`, excludes them from match-rate denominators, and prints
+a warning banner. Any results file reporting a non-zero `errored_runs` should be treated as suspect
+until the cause is understood.
 
 ## Cases
 
@@ -127,6 +188,13 @@ engineer would have: who filed it, what authority is claimed, and the relevant m
 **The body never states or hints at the answer.** No verdict word, no reasoning, no "this is
 unnecessary". If the answer were visible in the input, the suite would measure reading
 comprehension instead of judgement. The harness sends the body only; frontmatter is never sent.
+
+Checking for leaked *verdict words* is not sufficient, and an earlier version of case 06 failed on
+exactly that point: it stated the governing regulation, the contract, and the confirming officer as
+given facts, so the correct answer could be reached by restating the input and the guard could not
+fail. Reasoning leaks are the harder class. When adding or editing a case, grep for citations,
+statute numbers, authority confirmations, and any sentence that supplies the decisive argument
+rather than the raw situation.
 
 | Case | Expected | Case type | Worked example |
 |---|---|---|---|
@@ -142,15 +210,29 @@ behind every expected verdict is always one click away and cannot silently rot.
 
 ### Case 06 is the regression guard
 
-Case 06 inverts the direction: the incoming request is to *remove* a PHI access audit log, and
+Case 06 inverts the direction: the incoming request is to *remove* a patient-record access log, and
 every surface signal points at deletion — zero reads in three years, 30% of write volume, a real
-measured latency cost, and only "legal says" behind it. The expected verdict is **BUILD**: the
-protection is retained in full, and the genuine latency complaint is answered by changing the
-implementation rather than the coverage.
+measured latency cost, and only "legal says" behind it, with nobody able to name a rule.
 
-A DELETE or DEFER on case 06 is a **failed guard**. The harness surfaces it as a distinct
-`guard_failures` count and prints an explicit `*** GUARD FAILED ***` banner. This case is why the
-suite cannot be gamed by a skill that simply deletes more.
+Crucially, the case body **withholds the justification**. It does not name a regulation, quote a
+contract, or report a compliance officer's confirmation, and it does not supply the argument that
+defeats the 10%-sampling alternative. It gives only what the filing engineer actually knows: the
+costs, the absence of reads, the vague authority, the domain (patient records for hospital
+customers), and the fact that nobody outside his own colleagues has been asked.
+
+That makes it a real test of the asymmetry doctrine rather than a reading exercise. The doctrine —
+stated in `../SKILL.md` and expanded in `../references/provenance.md` — is that for a *protective*
+constraint, absent provenance triggers research and escalation while the protection is retained; it
+does not license removal. An arm that reaches the right answer here must apply that asymmetry to a
+requirement whose justification it cannot see.
+
+The expected verdict is **BUILD**: coverage is retained in full, and the genuine latency complaint
+is answered by changing the implementation. A DELETE or DEFER is a **failed guard**; so, in
+substance, is accepting the 10% sampling offer, since that is coverage reduction in a performance
+costume. The harness surfaces guard failures as a distinct `guard_failures` count and prints an
+explicit `*** GUARD FAILED ***` banner. This case is why the suite cannot be gamed by a skill that
+simply deletes more — and because the answer is no longer in the input, it is a case either arm can
+genuinely fail.
 
 ## Verdict extraction
 
@@ -160,10 +242,24 @@ Both arms are told to end their response with a line of exactly the form:
 VERDICT: <one of DELETE, REDUCE, DEFER, BUILD, BUILD HARD>
 ```
 
-The harness reads the last such line, tolerating Markdown emphasis and trailing punctuation.
-`BUILD HARD` is matched before `BUILD`, otherwise every BUILD HARD would be misread as BUILD.
-Anything unrecognised is recorded as `UNPARSEABLE` and counted as a non-match. The harness never
-infers a verdict from the surrounding prose.
+The harness reads the last such line. `BUILD HARD` is matched before `BUILD`, otherwise every
+BUILD HARD would be misread as BUILD. Anything unrecognised is recorded as `UNPARSEABLE` and counted
+as a non-match. The harness never infers a verdict from the surrounding prose.
+
+Matching on longest-first alone is not enough, because models decorate the verdict in ways that
+break naive prefix comparison: `BUILD **HARD**`, `` `BUILD HARD` ``, `BUILD-HARD`, a non-breaking
+space, a leading `>` quote marker, doubled spaces. Every one of those silently produced `BUILD`
+or `UNPARSEABLE` in an earlier version. The parser now strips emphasis, backticks, quote markers,
+and hyphens, normalises whitespace including non-breaking spaces, and only then matches.
+
+Because this one function decides every other number in the suite, it has its own test:
+
+```bash
+python3 eval/run_eval.py --self-test
+```
+
+That checks 19 known-tricky strings, makes no API calls, and costs nothing. Run it after touching
+the parser.
 
 ## Limitations
 
@@ -179,9 +275,9 @@ Read these before quoting any number from this suite.
    a single lucky sample. **Rerunning this suite will not reproduce the same numbers.** What should
    be stable is the direction of the large effects, and that assumption is itself untested.
 4. **Single model.** One model family, one provider, one CLI version, recorded in the results JSON.
-   A model with different priors could give a different answer. In particular, the model tested here
-   already declines to delete a HIPAA control and already reaches BUILD HARD unprompted, which
-   leaves the skill less room to change anything.
+   A model with different priors could give a different answer. The model tested here already
+   reaches BUILD HARD unprompted on the hardest case, which leaves the skill less room to change
+   anything.
 5. **No implementation arm.** No code is written, so no downstream saving in files, lines,
    dependencies, or implementation tokens is measured. See "What is NOT measured".
 6. **Prompt-sensitive.** The shared prompt is one specific wording. The verdict labels in
@@ -202,10 +298,23 @@ Read these before quoting any number from this suite.
 10. **Verdict label, not decision quality.** The match metric grades the label. In the recorded run
     there were cases where both arms chose substantively sensible scope and were still scored wrong
     on the label. Match rate is therefore a noisy proxy for the thing that actually matters.
+11. **Ambient instruction contamination — now controlled, previously not.** Claude Code injects any
+    `CLAUDE.md` found from the working directory upward. An earlier run of this suite was invalidated
+    by exactly that: a large ambient engineering-guidance file was silently added to *both* arms, and
+    it contained scope-discipline language paraphrasing part of the skill under test, which
+    strengthened the baseline for reasons unrelated to the experiment. `--safe-mode` now suppresses
+    it, and the results file records the isolation flags used. Any results file without
+    `isolation_flags` predates the fix and should not be trusted. A residual remains: the CLI's own
+    built-in system prompt still contains generic minimal-change guidance that cannot be removed
+    through this interface, so the baseline is not a naive agent. See [Isolation](#isolation).
+12. **`--tools ""` is required to disable tools; `--allowed-tools ""` does not.** Any results file
+    produced with the latter carries an unverified no-file-reads claim and a silent failure path
+    where a CLI error is scored as a wrong answer. See [Isolation](#isolation).
 
 ## Adding a case
 
 Add `cases/NN-slug.md` with frontmatter `id`, `expected_verdict`, `case_type`, `example` (a path
-that resolves), and optionally `guard`. Keep every trace of the answer out of the body. Then run
-`python3 eval/run_eval.py --runs 1 --case NN` to check it loads and parses, and add the worked
-reasoning to `../examples/` so the expected verdict is defensible to a reader.
+that resolves), and optionally `guard`. Keep every trace of the answer out of the body — including
+the *reasoning*, not just the verdict word. Then run `python3 eval/run_eval.py --runs 1 --case NN`
+to check it loads and parses, and add the worked reasoning to `../examples/` so the expected verdict
+is defensible to a reader.
