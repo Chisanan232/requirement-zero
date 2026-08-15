@@ -407,7 +407,8 @@ guarantee in a performance costume.
 Codebase Zero applies the same rule to code that already exists, in its own words: the challenge is
 allowed against the *implementation size* of a protection and never against its *existence*, so a
 slow idempotency check becomes a faster idempotency check and not a removed one. Its
-[Constraints not yours to delete](skills/codebase-zero/SKILL.md) section defaults every protective
+[Constraints not yours to delete](skills/codebase-zero/SKILL.md#constraints-not-yours-to-delete)
+section defaults every protective
 artifact to KEEP, and states the same backwards inference explicitly: absence of a triggered
 incident is not evidence the protection is unnecessary. A protection that has never fired may be the
 reason nothing has happened.
