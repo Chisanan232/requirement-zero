@@ -116,8 +116,11 @@ disagreement on any run. Case 06 is the one deliberately built so that every in-
 supports deletion and only an out-of-repository config value blocks it; **the baseline reached DEFER
 CLEANUP on all three runs**, which
 [../README.md](../README.md#why-case-06-is-not-simply-delete) calls "deliberately the hardest of the
-seven" and "the case most likely to be scored 'wrong' for a defensible reason". Neither arm found it
-hard. **This suite measured no difference at all in removal decisions.**
+seven" and
+
+> the case most likely to be scored "wrong" for a defensible reason
+
+Neither arm found it hard. **This suite measured no difference at all in removal decisions.**
 
 **The baseline is strong, and that compresses everything measurable.** Its 17/21 with 0 false
 rejections and 0 guard failures means a plain coding agent, given a prompt that names all six
