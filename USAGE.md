@@ -285,8 +285,8 @@ than *what* was seen, it says so.
 ### The skill does not load at all
 
 If you launched the agent with `--safe-mode`, that is why: testing established that `--safe-mode`
-suppresses skill discovery, so the skill is simply not found. No error is reported for a skill that
-was never discovered, which is what makes this one confusing to debug. Drop the flag.
+suppresses skill discovery, so the skill is simply not found. The flag is the only signal to go on,
+which is what makes this one confusing to debug. Drop it.
 
 If it still does not load, check the two paths that look plausible and do not work: skills are
 not discovered through `--plugin-dir`, and they are not discovered through a relocated
