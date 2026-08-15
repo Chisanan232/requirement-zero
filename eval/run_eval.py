@@ -191,6 +191,9 @@ def _assert_scoring_sets_sane() -> None:
     `load_cases` only exercises through case frontmatter. Both must be non-empty, both must name
     verdicts this profile can actually return, and they must not overlap -- a verdict cannot be both
     the answer that loses load-bearing scope and the answer that preserves it.
+
+    `required_description_terms` is checked here for the same reason, because the check it feeds has
+    the same vacuous-pass shape: an empty list satisfies every term and prints the success line.
     """
     for name, profile in PROFILES.items():
         verdicts: tuple[str, ...] = profile["verdicts"]  # type: ignore[assignment]
@@ -211,6 +214,14 @@ def _assert_scoring_sets_sane() -> None:
         if overlap:
             raise SystemExit(
                 f"profile {name!r}: {overlap} is listed as both protective and a false rejection."
+            )
+        # Same reasoning one level up: an empty term list makes check_descriptions() pass
+        # vacuously and print the same success line as a real pass, and a missing key makes it
+        # die on a KeyError instead of saying what is wrong.
+        if not profile.get("required_description_terms"):
+            raise SystemExit(
+                f"profile {name!r}: required_description_terms is missing or empty; the "
+                f"description check would pass without checking anything."
             )
 
 
