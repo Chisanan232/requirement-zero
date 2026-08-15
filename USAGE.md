@@ -134,9 +134,10 @@ already happening in production, making this a confirmed incident response, not 
 feature. Requirement-zero is explicitly excluded for safety, security, legal, or compliance
 requirements."
 
-Both of those non-trigger answers came from the `description` frontmatter alone, without the
-skill body being loaded. The exclusion is part of the trigger surface, not a rule buried inside
-the method.
+Both of those refusals cited the exclusion that the `description` frontmatter states verbatim. The
+exclusion is part of the trigger surface, not a rule buried inside the method. What was observed is
+the refusal and its stated reasoning; whether the host had loaded the skill body is not something
+this project could see.
 
 **Trivial requests.** Nothing in the skill stops you asking for a verdict on a one-line change,
 but the analysis costs tokens and time (see [Cost](#cost)) and produces nothing you did not
@@ -332,7 +333,8 @@ with no install tooling, no package manager, and no configuration changes, then:
 2. **Triggering.** Given the log-parser plugin-system request above, the skill fired without being
    named and returned DEFER with the committed-second-consumer rule cited.
 3. **Non-triggering, both boundaries.** The security request and the bug-fix request above were
-   both correctly declined as out of scope, from the `description` frontmatter alone.
+   both correctly declined as out of scope, each citing the exclusion that the `description`
+   frontmatter states.
 
 Also established during that testing, and recorded here so nobody repeats it: skills are not
 discovered via `--plugin-dir` or via `CLAUDE_CONFIG_DIR`; `~/.claude/skills/` is the path that
