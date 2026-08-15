@@ -337,12 +337,27 @@ be a claim this project has not earned yet. What exists is:
   [the results](eval/codebase-zero/results/2026-08-15-claude-sonnet-4-6.md) including its
   limitations, of which the largest is that the evaluation gives the agent no tools, so the
   evidence-gathering half of the skill is **untested**.
-- **Trigger and non-trigger behaviour: two boundaries observed, not a systematic sweep.** Given the
-  idempotency-guard audit above, the skill fired without being named, stated the mission, reached
-  KEEP, and separated "the original requirement is gone" from "the reason cannot be found" — the
-  distinction its own procedure draws. Given "we already decided to delete this, nothing left to
-  decide", it declined, citing the exclusion the `description` states. Two requests is two
-  requests; Requirement Zero's trigger section rests on more.
+- **Trigger and non-trigger behaviour: two boundaries observed, not a systematic sweep.** Both
+  checks ran through the installed skill in a throwaway `CLAUDE_CONFIG_DIR`, so they confirm the
+  skill's own behaviour but not that a default `~/.claude/skills/` install resolves identically.
+  Neither left a committed artifact, so nothing in this repository can re-check them. Given:
+
+  > A payments service has a module doing a synchronous DB lookup on every charge to catch duplicate
+  > idempotency keys. Its duplicate-detected counter has not incremented in fourteen months. It
+  > costs 40ms on the charge path. Nobody remembers why it was added; the original ticket is gone.
+  > The client SDK retries on timeout. Should we drop it?
+
+  the skill fired without being named, stated the mission, reached KEEP, and separated "the original
+  requirement is gone" from "the reason cannot be found" — the distinction its own procedure draws.
+  Given:
+
+  > We already decided in last week's review to delete the legacy CSV exporter at
+  > exporters/csv_legacy.py. Nothing left to decide.
+
+  it declined, citing the exclusion the `description` states. That exclusion does not reach
+  protective controls, and a CSV exporter is not one; had the artifact been a compliance or security
+  control, the `description` directs the audit to run anyway. Two requests is two requests;
+  Requirement Zero's trigger section rests on more.
 - **Cost: not separately measured** outside the evaluation above.
 
 Treat the untested parts as untested.
