@@ -41,16 +41,25 @@ Run the test against each of these, not just the headline feature:
 
 ## Rules that decide specific cases
 
+The "Deletion that is out of scope" list below **overrides every rule in this section**. If a
+rule here would delete something on that list, the list wins and the answer is to scope the
+implementation rather than remove the protection.
+
 - **One implementation, no committed second consumer** → delete the abstraction, keep the
   concrete implementation. "Committed" means a named consumer with a date. An interface with a
   single implementer is a naming convention with extra steps.
 - **Configurability nobody requested** → delete the setting, hardcode the value. Cost of change
   later is one edit; cost of carrying it is every code path, test, and doc that branches on it.
 - **A flag whose off state is never used in production** → delete the flag and the dead branch.
+  Not a kill switch or a degradation path: those exist unused by design, and the day they are
+  needed is the day nobody has time to rebuild one.
 - **Symmetry or completeness arguments** ("we support CSV, so we should support XML") → delete
   unless the new case has its own observer and signal. Symmetry is an aesthetic, not a user.
 - **Defensive code for a state the type system or a database constraint already prevents** →
-  delete. Defensive code for a state that has actually occurred → retain, with a test.
+  delete. Defensive code for a state that has actually occurred → retain, with a test. This rule
+  stops at trust boundaries: a type declaration is a compile-time claim, not a runtime check, so
+  validation of anything deserialized from outside the process — request bodies, webhooks, file
+  uploads, queue messages, third-party responses — is input validation and is not deletable here.
 - **A cache with no measured latency or cost problem** → delete. Add it when there is a number.
 - **A queue or async path where the synchronous version meets the SLO** → delete.
 - **A generic solution for one case** → delete the generality, solve the case. The second case
@@ -58,7 +67,9 @@ Run the test against each of these, not just the headline feature:
 - **An admin or internal tool that duplicates a database query someone runs monthly** → delete;
   the query is the tool until frequency or audience changes.
 - **A metric, log, or dashboard with no consumer and no alert attached** → delete. Observability
-  that nobody reads is cost, not insight.
+  that nobody reads is cost, not insight. Audit and security logs are the exception: they are
+  read retrospectively, after an incident or on request, so "no current consumer" is their normal
+  state and not evidence against them.
 - **Backward compatibility for a caller you can enumerate and update** → delete the compatibility
   layer, update the callers. For a *published* interface with unknown callers, this is a
   protective constraint: retain.
@@ -69,8 +80,10 @@ Run the test against each of these, not just the headline feature:
 Do not delete on your own authority:
 
 - Security controls, authentication, authorization, encryption, input validation, audit trails
-- Safety interlocks, rate limits, and circuit breakers that exist because of an incident
-- Privacy and data-retention behavior, consent flows, deletion rights
+- Safety interlocks, rate limits, circuit breakers, and kill switches — whether or not an incident
+  has already happened. A control with a clean record may be working, not idle.
+- Data integrity constraints, and privacy and data-retention behavior, consent flows, deletion
+  rights
 - Regulatory or contractual obligations
 - Compatibility of an interface with callers you cannot enumerate
 
