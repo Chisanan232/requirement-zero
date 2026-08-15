@@ -74,11 +74,14 @@ rather review a challenged requirement than a well-implemented mistake.
 
 ```
 SKILL.md      the skill itself, kept deliberately compact
-references/   supporting methodology, loaded only when needed  (planned)
+references/   supporting methodology in 4 files, loaded only when needed
+examples/     6 worked decisions, one per verdict plus a safety case, and an index
+eval/         the evaluation harness, 6 input cases, and published results
+USAGE.md      installation, triggers, verdicts, safety boundaries, compatibility
+LICENSE       MIT
 ```
 
-Installation and usage documentation land with v0.1. The skill is a Markdown file: there is no
-CLI, server, package, or runtime to install.
+The skill is a Markdown file: there is no CLI, server, package, or runtime to install.
 
 ## Status
 
