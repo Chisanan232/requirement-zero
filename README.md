@@ -87,6 +87,31 @@ constraints are not deleted for lack of a convenient justification. Absent evide
 confidence in *speculative* scope; it does not license removing a protection. Those constraints
 require concrete evidence and appropriate review before anything is dropped.
 
+## Evaluation
+
+There is one published run: 36 CLI calls, `claude-sonnet-4-6`, six adversarial cases, two arms
+(baseline and skill-enabled), three runs per cell. Full write-up in
+[**eval/results/2026-08-15-claude-sonnet-4-6.md**](eval/results/2026-08-15-claude-sonnet-4-6.md);
+design, metrics, and limitations in [**eval/README.md**](eval/README.md).
+
+The honest reading, both halves of which have to be quoted together:
+
+- **No detectable difference in verdict accuracy.** The skill arm matched the expected verdict on
+  one more run out of 18 than the baseline. At three runs per cell that is a single run of
+  difference and no confidence interval can be computed from it; a rerun could reverse the
+  ordering.
+- **The skill arm cost more.** Output tokens rose from 25,899 to 31,464 across 18 calls and mean
+  latency rose from 30.2 s to 36.4 s. There is no implementation arm, so the downstream saving the
+  method claims is **entirely unmeasured** — only the analysis cost was measured, and it went up.
+
+Two results are worth naming. Both arms produced **zero false rejections**: no run refused valid
+work or under-built a requirement that should have been built, and the only over-deletion anywhere
+in the matrix came from the *baseline*. The clearest behavioural difference is case 03, where the
+skill arm reached DEFER on 2 of 3 runs against the baseline's 0 of 3 — a genuine
+build-nothing-yet decision on speculative scope, on one case out of six.
+
+Reproducing it needs Python 3 and the `claude` CLI and nothing else: `python3 eval/run_eval.py`.
+
 ## Who it is for
 
 Engineers using AI coding agents on real systems, where the agent is fast enough that
