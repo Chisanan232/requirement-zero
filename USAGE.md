@@ -1,12 +1,16 @@
-# Using Requirement Zero
+# Using Requirement Zero and Codebase Zero
 
-Requirement Zero is an [Agent Skill](https://code.claude.com/docs/en/skills): a single
-`SKILL.md` file with YAML frontmatter and a Markdown body, plus a `references/` directory the
-agent loads only when it needs one. There is no CLI, no server, no package, no runtime, and no
-build step.
+Both skills are [Agent Skills](https://code.claude.com/docs/en/skills): a single `SKILL.md` file
+with YAML frontmatter and a Markdown body, plus a `references/` directory the agent loads only when
+it needs one. There is no CLI, no server, no package, no runtime, and no build step.
 
-For what the skill is *for* and where it sits relative to other tools, read
-[README.md](README.md). This file is about running it.
+For what the skills are *for* and where they sit relative to other tools, read
+[README.md](README.md). This file is about running them.
+
+Most of this file is about Requirement Zero, because that is the skill with observed trigger,
+non-trigger, and failure-mode behaviour to report. Installation covers both. Codebase Zero's
+triggers, verdicts, and safety boundary are in
+[Using Codebase Zero](#using-codebase-zero), and the sections it does *not* have are named there.
 
 ## Installation
 
@@ -192,7 +196,10 @@ already know.
 
 ## Reading a verdict
 
-Every run ends in exactly one of five verdicts. The skill is required to commit — it must not
+Requirement Zero's verdicts are below; Codebase Zero's six are in
+[Using Codebase Zero](#using-codebase-zero).
+
+Every Requirement Zero run ends in exactly one of five verdicts. The skill is required to commit — it must not
 present the five as options for you to pick from, and it must not hedge into "it depends".
 
 Whatever the verdict, the run owes you the same six-part report: the fundamental objective, the
@@ -252,16 +259,99 @@ every time.
 For a worked decision in each direction, see [examples/index.md](examples/index.md) — six full
 cases, one per verdict plus a safety case.
 
+## Using Codebase Zero
+
+Everything above about installation, and everything below about protective constraints, applies to
+both skills. This section covers what differs.
+
+**What it is for.** Requirement Zero acts before code exists. Codebase Zero audits code that is
+already here and asks whether it still deserves to exist. Its output is a verdict per artifact with
+the evidence behind it — not a diff.
+
+### When it fires, and when it must not
+
+It fires on requests to review, audit, clean up, or simplify existing code, and on "should we delete
+this?" — modules, abstractions, compatibility layers, dependencies, flags, config, endpoints, jobs,
+caches, tests, CI, docs.
+
+Its `description` excludes four classes, for the same reason Requirement Zero's excludes three: a
+skill that fires on everything is worse than no skill.
+
+- **Bug fixes**, and **code review of a change in progress** — the subject there is a change, not an
+  existing artifact's right to exist.
+- **A removal already decided**, where the job is to carry it out. Auditing a settled decision is
+  the waste this project exists to object to.
+- **Deciding whether to build something new** — that is `requirement-zero`, and the description says
+  so by name to keep the two from firing on each other's work.
+
+Note what is deliberately *not* excluded. Requirement Zero refuses safety, security, legal, and
+compliance requirements outright, because a stated protective requirement must not be argued with.
+Codebase Zero must fire on protective code, because "should we delete this rate limiter?" gets asked
+and the answer needs the doctrine attached. Excluding those artifacts would leave the question to an
+agent with no retention doctrine at all, which is worse. What protects them is
+[the KEEP default](#what-the-skill-may-legitimately-do-to-a-protective-constraint) below, not a
+refusal to look.
+
+### Reading a Codebase Zero verdict
+
+Six verdicts, and it must commit to exactly one per artifact:
+
+| Verdict | Meaning | What you owe it |
+|---|---|---|
+| **DELETE** | No current dependent, no observer of its absence, and the original requirement is gone. | Check that "I found no caller" is not being reported as "there is no caller". Config, dynamic dispatch, and out-of-repo consumers are the usual gap. |
+| **CONSOLIDATE** | Several artifacts do one job; the behaviour stays and one survives. | Check the survivor was chosen on merit, not on being first in the list. |
+| **SIMPLIFY** | The behaviour is justified; the structure around it is not. | Check the guarantee is intact and only the scaffolding went. |
+| **DEFER CLEANUP** | It looks removable, but the evidence or the risk does not justify acting now. | Check it named the *specific* missing evidence. "Needs more investigation" is not a verdict. |
+| **KEEP** | It still earns its place. | This is a real answer, not a null result. Check the reason is written down, so the next audit does not redo it. |
+| **INVEST** | Expensive and complex, *and* where the mission is won or lost. Spend more here. | Check it named the mission and why this is the bottleneck — otherwise it is a rubber stamp for expensive work, the same risk BUILD HARD carries. |
+
+Every non-trivial verdict owes seven fields: the fundamental objective, the evidence, the
+confidence, the blast radius, the expected benefit and cost, what is retained, and the verification
+that would catch the mistake. The blast radius and the verification are the reviewable parts — "run
+the test suite" is only an answer once someone has confirmed the suite covers the artifact, because a
+green suite that never exercised the deleted path proves the path was untested, not unused.
+
+Seven worked audits, one per verdict plus a second retention case:
+[skills/codebase-zero/examples/index.md](skills/codebase-zero/examples/index.md).
+
+### It audits; it does not delete
+
+The default is audit only, stated in the frontmatter and three places in the body. It must not
+delete, move, or rewrite anything unless you have separately asked for a specific finding to be
+applied, and the apply path is one hypothesis at a time — never several unrelated removals in one
+change. If it edits code off the back of an audit request alone, that is a defect; report it.
+
+### What is not in this file, and why
+
+Requirement Zero's sections above report *observed* behaviour — a request that made it fire, two
+that made it decline, a headless failure mode, measured cost. The equivalent for Codebase Zero would
+be a claim this project has not earned yet. What exists is:
+
+- **Install and discovery: verified.** See
+  [Installing Codebase Zero](#installing-codebase-zero-the-sibling-skill) — listed, body loaded,
+  `references/` read through the symlink, and one audit request that fired the skill and returned
+  KEEP on a protective mechanism with all seven fields present.
+- **Judgement: measured on constructed cases.** 42 CLI calls, 21/21 expected verdicts against a
+  baseline's 17/21, no removal recommended for any load-bearing artifact in either arm. Read
+  [the results](eval/codebase-zero/results/2026-08-15-claude-sonnet-4-6.md) including its
+  limitations, of which the largest is that the evaluation gives the agent no tools, so the
+  evidence-gathering half of the skill is **untested**.
+- **Trigger and non-trigger behaviour: not systematically tested.** The trigger surface is argued
+  from the `description`, not observed across a set of requests the way Requirement Zero's was.
+- **Cost: not separately measured** outside the evaluation above.
+
+Treat the untested parts as untested.
+
 ## Interaction with your existing project instructions
 
-Read this section before installing the skill into a project where safety, security, privacy,
+Read this section before installing either skill into a project where safety, security, privacy,
 legal, compliance, or published-interface obligations exist. It is the most important section in
-this file.
+this file, and it applies to both skills.
 
-**Requirement Zero does not override those constraints.** If your `CLAUDE.md`, your architecture
-rules, your security policy, or a regulation requires something, this skill is not a mechanism
-for arguing it away. Its scope is *unvalidated new scope*, and protective constraints are not
-that.
+**Neither skill overrides those constraints.** If your `CLAUDE.md`, your architecture rules, your
+security policy, or a regulation requires something, neither skill is a mechanism for arguing it
+away. Requirement Zero's scope is *unvalidated new scope*; Codebase Zero's is *an artifact's
+continued right to exist*. Protective constraints are neither.
 
 ### The asymmetry that makes this coherent
 
@@ -271,8 +361,11 @@ on what is missing evidence.
 
 | Requirement type | Examples | Effect of absent evidence |
 |---|---|---|
-| **Speculative** scope | future flexibility, anticipated scale, unrequested generality, a plugin point for a consumer who does not exist | Lowers confidence. Pushes toward DELETE or DEFER. |
-| **Protective** constraints | security, safety, privacy, data integrity, legal and regulatory obligations, backward compatibility of a published interface | Does **not** license removal. The default is **retain**. |
+| **Speculative** scope | future flexibility, anticipated scale, unrequested generality, a plugin point for a consumer who does not exist | Lowers confidence. Pushes toward DELETE or DEFER, or toward DELETE or DEFER CLEANUP for an existing artifact. |
+| **Protective** constraints | security, safety, privacy, data integrity, legal and regulatory obligations, backward compatibility of a published interface | Does **not** license removal. The default is **retain** — BUILD, or KEEP for an existing artifact. |
+
+Both skills share this asymmetry, and it does more work in Codebase Zero, because an artifact already
+in the tree is load-bearing for someone whether or not the repository records who.
 
 For a protective constraint, removal requires a named owner's decision and, where applicable,
 security, legal, or compliance review, with the residual risk recorded in writing. "Nobody could
@@ -291,6 +384,14 @@ It may not reduce coverage of the guarantee and present that as a smaller versio
 Sampling 10% of an audit trail is not a smaller audit trail; it is a different, weaker
 guarantee in a performance costume.
 
+Codebase Zero applies the same rule to code that already exists, in its own words: the challenge is
+allowed against the *implementation size* of a protection and never against its *existence*, so a
+slow idempotency check becomes a faster idempotency check and not a removed one. Its
+[Constraints not yours to delete](skills/codebase-zero/SKILL.md) section defaults every protective
+artifact to KEEP, and states the same backwards inference explicitly: absence of a triggered
+incident is not evidence the protection is unnecessary. A protection that has never fired may be the
+reason nothing has happened.
+
 The full doctrine, including the out-of-scope list that overrides every other deletion rule in
 that document, is [references/deletion.md](references/deletion.md). That list covers security
 controls, authentication, authorization, encryption, input validation, audit trails, safety
@@ -300,7 +401,7 @@ obligations, and compatibility of an interface with callers you cannot enumerate
 circuit breakers, and kill switches are on it **whether or not an incident has already
 happened** — a control with a clean record may be working, not idle.
 
-### If you ever see it recommend deleting a protective control
+### If you ever see either skill recommend deleting a protective control
 
 **Treat it as a defect and report it.** Do not act on it.
 
@@ -313,7 +414,14 @@ answer is still to retain the protection in full and route the latency complaint
 implementation. The [evaluation suite](eval/README.md) carries that case as a
 standing regression guard for the same reason.
 
-Nothing in this skill makes deleting a security, legal, privacy, safety, compliance, or
+Codebase Zero carries three such guards rather than one — a compatibility contract that looks
+abandoned, a mission-critical subsystem that every maintenance-cost metric ranks first for cleanup,
+and a payment guard whose counter has not fired in fourteen months. In the recorded run no arm
+recommended removing or reducing any of the three. Its
+[keep-idempotency-replay-guard](skills/codebase-zero/examples/keep-idempotency-replay-guard.md)
+audit is the worked equivalent of the PHI case above.
+
+Nothing in either skill makes deleting a security, legal, privacy, safety, compliance, or
 compatibility constraint acceptable, easier, or optional.
 
 ## Failure modes and troubleshooting
