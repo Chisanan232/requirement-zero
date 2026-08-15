@@ -271,13 +271,14 @@ compatibility constraint acceptable, easier, or optional.
 
 ## Failure modes and troubleshooting
 
-All four of these are observed behaviour, not speculation.
+All four of these were observed or measured. Where the text explains *why* something happens rather
+than *what* was seen, it says so.
 
 ### The skill does not load at all
 
-If you launched the agent with `--safe-mode`, that is why. `--safe-mode` disables customizations,
-and skill discovery is one of the things it suppresses — the skill is not found, and nothing
-reports an error, because from the agent's point of view no skill exists. Drop the flag.
+If you launched the agent with `--safe-mode`, that is why: testing established that `--safe-mode`
+suppresses skill discovery, so the skill is simply not found. No error is reported for a skill that
+was never discovered, which is what makes this one confusing to debug. Drop the flag.
 
 If it still does not load, check the two paths that look plausible and do not work: skills are
 not discovered through `--plugin-dir`, and they are not discovered through a relocated
@@ -286,12 +287,12 @@ the agent to list its skills.
 
 ### A headless run returns nothing
 
-In non-interactive/headless mode the agent will reach a verdict and then carry straight on into
-*doing the work* — which is correct behaviour for an agent that just concluded BUILD, but it can
-exhaust a low `--max-turns` budget before anything is returned to you. If you want the verdict
-only, scope the request to the decision: ask for the verdict and the scope lists, and say that no
-implementation should follow. Otherwise budget turns for the implementation you are implicitly
-asking for.
+Observed while testing this skill headlessly: a run with a low `--max-turns` ended in
+`error_max_turns` with an empty result. The agent had reached a verdict and carried straight on into
+*doing the work* — correct behaviour for an agent that just concluded BUILD — and ran out of turns
+before returning anything. Scoping the request to the decision alone fixed it. So if you want the
+verdict only, ask for the verdict and the scope lists and say that no implementation should follow.
+Otherwise budget turns for the implementation you are implicitly asking for.
 
 ### The verdict label is noisier than the decision
 
