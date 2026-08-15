@@ -7,6 +7,20 @@ Before Requirement #1 comes Requirement #0: prove that the requirement deserves 
 Requirement Zero is an [Agent Skill](https://code.claude.com/docs/en/skills) that makes an AI
 coding agent challenge a requirement *before* it plans or writes code.
 
+## Install
+
+```bash
+git clone https://github.com/Chisanan232/requirement-zero.git ~/.claude/skills/requirement-zero
+```
+
+That is all of it. The repository root *is* the skill directory — `SKILL.md` is at the top level —
+so there is nothing to build, install, or configure afterwards, and updating is `git pull`. The
+agent then invokes it on its own when a request matches, or you can ask for it by name.
+
+[USAGE.md](USAGE.md) covers the rest: when it fires and when it must not, how to read each
+verdict, how it interacts with your project's existing safety and compliance constraints, known
+failure modes, and which hosts this has actually been tested on.
+
 ## The problem
 
 Coding agents are very good at satisfying a stated request. That is exactly the failure mode.
