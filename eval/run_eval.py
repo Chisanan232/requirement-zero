@@ -5,6 +5,10 @@ Two arms, identical user prompts. The only difference is that the `skill` arm ge
 repository's SKILL.md appended to the system prompt. Standard library only; shells out to
 the `claude` CLI.
 
+Runs are isolated with `--safe-mode`, which stops CLAUDE.md discovery from the working directory
+upward. Without it an ambient project CLAUDE.md is injected into BOTH arms; see eval/README.md
+"Isolation".
+
     python3 eval/run_eval.py                      # full matrix: 6 cases x 2 arms x 3 runs
     python3 eval/run_eval.py --runs 1 --case 01   # one cheap pair of calls
 """
@@ -138,6 +142,9 @@ def call_claude(prompt: str, system_prompt: str | None) -> dict[str, object]:
         "--model", "sonnet",
         "--max-turns", "1",
         "--allowed-tools", "",
+        # --safe-mode stops CLAUDE.md discovery from CWD upward. Without it an ambient project
+        # CLAUDE.md is injected into BOTH arms; see eval/README.md "Isolation".
+        "--safe-mode",
     ]
     if system_prompt is not None:
         cmd += ["--append-system-prompt", system_prompt]
