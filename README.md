@@ -74,11 +74,11 @@ rather review a challenged requirement than a well-implemented mistake.
 
 ```
 SKILL.md      the skill itself, kept deliberately compact
-references/   supporting methodology, loaded only when needed
+references/   supporting methodology, loaded only when needed  (planned)
 ```
 
-Installation and usage documentation land with v0.1 (`SPE-61`). The skill is a Markdown file:
-there is no CLI, server, package, or runtime to install.
+Installation and usage documentation land with v0.1. The skill is a Markdown file: there is no
+CLI, server, package, or runtime to install.
 
 ## Status
 
