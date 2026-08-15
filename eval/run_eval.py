@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""Compare agent verdicts on the same requirement cases with and without Requirement Zero.
+"""Compare agent verdicts on the same cases with and without one of this repository's skills.
 
-Two arms, identical user prompts. The only difference is that the `skill` arm gets the
-repository's SKILL.md appended to the system prompt. Standard library only; shells out to
-the `claude` CLI.
+Two arms, identical user prompts. The only difference is that the `skill` arm gets the skill's
+SKILL.md body appended to the system prompt. Standard library only; shells out to the `claude` CLI.
+
+Two profiles, selected with `--profile`, each with its own skill, case corpus, verdict vocabulary,
+and prompt: `requirement-zero` (the default) and `codebase-zero`.
 
 Runs are isolated with `--safe-mode` (no ambient CLAUDE.md discovery from the working directory)
 and `--tools ""` (tools removed from the model's schema). Both matter for validity: see
 eval/README.md "Isolation".
 
-    python3 eval/run_eval.py                      # full matrix: 6 cases x 2 arms x 3 runs
-    python3 eval/run_eval.py --runs 1 --case 01   # one cheap pair of calls
-    python3 eval/run_eval.py --self-test          # verdict-extraction checks, no calls
+    python3 eval/run_eval.py                              # requirement-zero: 6 cases x 2 arms x 3 runs
+    python3 eval/run_eval.py --profile codebase-zero      # the codebase-zero corpus
+    python3 eval/run_eval.py --runs 1 --case 01           # one cheap pair of calls
+    python3 eval/run_eval.py --self-test                  # verdict-extraction checks, no calls
 """
 
 from __future__ import annotations
@@ -27,14 +30,10 @@ from pathlib import Path
 
 EVAL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = EVAL_DIR.parent
-CASES_DIR = EVAL_DIR / "cases"
 RESULTS_DIR = EVAL_DIR / "results"
-SKILL_PATH = REPO_ROOT / "SKILL.md"
 
-VERDICTS = ("BUILD HARD", "DELETE", "REDUCE", "DEFER", "BUILD")  # BUILD HARD first: longest match wins
 UNPARSEABLE = "UNPARSEABLE"  # model answered, but no readable VERDICT line: a real non-match
 ERRORED = "ERRORED"          # CLI/harness failure: excluded from match-rate denominators
-FALSE_REJECTIONS = ("DELETE", "DEFER")  # wrong when the expected verdict is BUILD or BUILD HARD
 CALL_TIMEOUT_S = 300
 
 # Both arms receive this identical prompt, including the verdict vocabulary and an explicit
@@ -83,6 +82,81 @@ DELETED_SCOPE_RE = re.compile(
     re.IGNORECASE,
 )
 
+# The codebase-zero corpus audits code that already exists, so the decision, the vocabulary, and
+# the report differ. Same structure as above: both arms get this identical prompt, it names the
+# whole vocabulary, and it explicitly licenses the answers that are not deletion.
+CODEBASE_PROMPT_TEMPLATE = """You are an engineer auditing an artifact that already exists in a
+codebase, deciding whether it still deserves to exist.
+
+Read the artifact description and the situational facts below and decide what should actually
+happen to it, if anything.
+
+Reach exactly one verdict from this vocabulary:
+
+- DELETE - it no longer earns its existence; remove it.
+- CONSOLIDATE - several artifacts do the same job; the behaviour stays and one implementation
+  survives.
+- SIMPLIFY - the behaviour is justified but the implementation carries structure nothing uses.
+- DEFER CLEANUP - it looks removable, but the evidence or the risk does not justify acting now.
+- KEEP - it still earns its place as it is.
+- INVEST - it is complex and expensive and it is where the mission is currently won or lost;
+  spend more engineering here rather than simplifying the capability away.
+
+Removing nothing is an acceptable and often correct answer, and so is concluding that an expensive
+subsystem deserves more investment rather than less. Commit to one verdict; do not hedge and do not
+offer the user a menu.
+
+Report briefly, in this order:
+
+1. Fundamental objective - the outcome this artifact serves.
+2. Evidence, and what it does not establish.
+3. Confidence, and what would raise it.
+4. Blast radius if it changed.
+5. What is retained.
+6. Verification needed.
+
+End your response with a final line in exactly this form, with nothing after it:
+
+VERDICT: <one of DELETE, CONSOLIDATE, SIMPLIFY, DEFER CLEANUP, KEEP, INVEST>
+
+--- ARTIFACT UNDER AUDIT ---
+
+{body}
+"""
+
+# One profile per skill. Verdict tuples are matched longest-first, so any verdict that is a prefix
+# of another must come first -- "DEFER CLEANUP" before "DEFER" would be a silent misread otherwise.
+# false_rejections are the verdicts that are wrong for this corpus's must-not-lose-it cases: for
+# requirement-zero, refusing work that should be built; for codebase-zero, removing or downgrading
+# something the case establishes as load-bearing.
+PROFILES: dict[str, dict[str, object]] = {
+    "requirement-zero": {
+        "skill_path": REPO_ROOT / "SKILL.md",
+        "cases_dir": EVAL_DIR / "cases",
+        "prompt": PROMPT_TEMPLATE,
+        "verdicts": ("BUILD HARD", "DELETE", "REDUCE", "DEFER", "BUILD"),
+        "protective_verdicts": ("BUILD", "BUILD HARD"),
+        "false_rejections": ("DELETE", "DEFER"),
+    },
+    "codebase-zero": {
+        "skill_path": REPO_ROOT / "skills" / "codebase-zero" / "SKILL.md",
+        "cases_dir": EVAL_DIR / "codebase-zero" / "cases",
+        "prompt": CODEBASE_PROMPT_TEMPLATE,
+        "verdicts": ("DEFER CLEANUP", "DELETE", "CONSOLIDATE", "SIMPLIFY", "KEEP", "INVEST"),
+        "protective_verdicts": ("KEEP", "INVEST"),
+        "false_rejections": ("DELETE", "CONSOLIDATE", "SIMPLIFY"),
+    },
+}
+
+# Every verdict any profile can produce, longest first. Used only as the default vocabulary for
+# --self-test, which checks extraction across both profiles in one pass.
+# Sorted by descending length then alphabetically: set iteration order varies between interpreter
+# runs, and a vocabulary that reorders per run is not a reproducible harness.
+ALL_VERDICTS: tuple[str, ...] = tuple(sorted(
+    {v for p in PROFILES.values() for v in p["verdicts"]},  # type: ignore[union-attr]
+    key=lambda v: (-len(v), v),
+))
+
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     """Split a `---` delimited `key: value` frontmatter block from the body. No YAML needed."""
@@ -99,31 +173,34 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     raise ValueError("unterminated frontmatter")
 
 
-def load_cases(case_filter: str | None) -> list[dict[str, object]]:
+def load_cases(profile: dict[str, object], case_filter: str | None) -> list[dict[str, object]]:
+    cases_dir: Path = profile["cases_dir"]  # type: ignore[assignment]
+    verdicts: tuple[str, ...] = profile["verdicts"]  # type: ignore[assignment]
     cases = []
-    for path in sorted(CASES_DIR.glob("*.md")):
+    for path in sorted(cases_dir.glob("*.md")):
         if case_filter and not path.name.startswith(case_filter):
             continue
         meta, body = parse_frontmatter(path.read_text(encoding="utf-8"))
         missing = {"id", "expected_verdict", "case_type", "example"} - meta.keys()
         if missing:
             raise ValueError(f"{path.name}: missing frontmatter keys {sorted(missing)}")
-        if meta["expected_verdict"] not in VERDICTS:
+        if meta["expected_verdict"] not in verdicts:
             raise ValueError(f"{path.name}: bad expected_verdict {meta['expected_verdict']!r}")
         if not (path.parent / meta["example"]).resolve().is_file():
             raise ValueError(f"{path.name}: example path does not resolve: {meta['example']}")
         cases.append({"file": path.name, "meta": meta, "body": body})
     if not cases:
-        raise SystemExit(f"no cases matched {case_filter!r}")
+        raise SystemExit(f"no cases matched {case_filter!r} under {cases_dir}")
     return cases
 
 
-def skill_body() -> str:
+def skill_body(profile: dict[str, object]) -> str:
     """The shipped skill, read from disk at run time so the eval always tests what ships."""
-    _, body = parse_frontmatter(SKILL_PATH.read_text(encoding="utf-8"))
+    skill_path: Path = profile["skill_path"]  # type: ignore[assignment]
+    _, body = parse_frontmatter(skill_path.read_text(encoding="utf-8"))
     if not body.strip():
         raise SystemExit(  # otherwise both arms silently become identical and report a null result
-            f"{SKILL_PATH.name} has an empty body: the skill arm would be identical to baseline."
+            f"{skill_path.name} has an empty body: the skill arm would be identical to baseline."
         )
     return body
 
@@ -140,14 +217,19 @@ def _normalise_tail(tail: str) -> str:
     return re.sub(r"\s+", " ", tail).strip().upper()
 
 
-def extract_verdict(text: str) -> str:
-    """Read the final `VERDICT:` line. Never guess: anything else is UNPARSEABLE."""
+def extract_verdict(text: str, verdicts: tuple[str, ...] = ()) -> str:
+    """Read the final `VERDICT:` line. Never guess: anything else is UNPARSEABLE.
+
+    `verdicts` is the profile's vocabulary, matched longest-first. It defaults to every verdict
+    either profile can produce so that --self-test covers both without threading a profile in.
+    """
+    verdicts = verdicts or ALL_VERDICTS
     for line in reversed(text.strip().splitlines()):
         line = line.strip().strip(_TAIL_STRIP)
         if not line.upper().lstrip(_TAIL_STRIP).startswith("VERDICT"):
             continue
         tail = _normalise_tail(line.split(":", 1)[-1])
-        for verdict in VERDICTS:  # BUILD HARD before BUILD
+        for verdict in verdicts:  # longest first: BUILD HARD before BUILD, DEFER CLEANUP before DEFER
             if tail.startswith(verdict):
                 return verdict
         return UNPARSEABLE
@@ -176,6 +258,17 @@ SELF_TEST_CASES = (
     ("no verdict line at all", UNPARSEABLE),
     ("", UNPARSEABLE),
     ("VERDICT: BUILD HARD\nVERDICT: DELETE", "DELETE"),  # last line wins
+    # codebase-zero vocabulary. DEFER CLEANUP must not degrade to DEFER, and the two-word forms
+    # arrive with the same emphasis and hyphenation noise the five-verdict set already showed.
+    ("VERDICT: DEFER CLEANUP", "DEFER CLEANUP"),
+    ("VERDICT: DEFER-CLEANUP", "DEFER CLEANUP"),
+    ("**VERDICT: DEFER CLEANUP**", "DEFER CLEANUP"),
+    ("VERDICT: `DEFER  CLEANUP`.", "DEFER CLEANUP"),
+    ("VERDICT: CONSOLIDATE", "CONSOLIDATE"),
+    ("VERDICT: SIMPLIFY", "SIMPLIFY"),
+    ("VERDICT: KEEP", "KEEP"),
+    ("VERDICT: INVEST", "INVEST"),
+    ("verdict: invest", "INVEST"),
 )
 
 
@@ -219,14 +312,17 @@ def call_claude(prompt: str, system_prompt: str | None) -> dict[str, object]:
         return {"error": f"unparseable CLI JSON: {exc}"}
 
 
-def run_once(case: dict[str, object], arm: str, skill: str, run_index: int) -> dict[str, object]:
+def run_once(
+    case: dict[str, object], arm: str, skill: str, run_index: int, profile: dict[str, object]
+) -> dict[str, object]:
     meta = case["meta"]  # type: ignore[index]
     expected = meta["expected_verdict"]
     record: dict[str, object] = {
         "case": case["file"], "arm": arm, "run": run_index, "expected_verdict": expected,
     }
+    prompt_template: str = profile["prompt"]  # type: ignore[assignment]
     outcome = call_claude(
-        PROMPT_TEMPLATE.format(body=case["body"]), skill if arm == "skill" else None
+        prompt_template.format(body=case["body"]), skill if arm == "skill" else None
     )
     if "error" in outcome:
         record.update(error=outcome["error"], verdict=ERRORED, matched=False)
@@ -250,12 +346,14 @@ def run_once(case: dict[str, object], arm: str, skill: str, run_index: int) -> d
             response_text=text,
         )
         return record
-    verdict = extract_verdict(text)
+    verdict = extract_verdict(text, profile["verdicts"])  # type: ignore[arg-type]
+    protective: tuple[str, ...] = profile["protective_verdicts"]  # type: ignore[assignment]
+    false_rejections: tuple[str, ...] = profile["false_rejections"]  # type: ignore[assignment]
     record.update(
         # Only whitelisted fields are kept: no session ids, uuids, or local paths.
         verdict=verdict,
         matched=verdict == expected,
-        false_rejection=expected in ("BUILD", "BUILD HARD") and verdict in FALSE_REJECTIONS,
+        false_rejection=expected in protective and verdict in false_rejections,
         named_deleted_scope=bool(DELETED_SCOPE_RE.search(text)),
         input_tokens=usage.get("input_tokens"),
         output_tokens=usage.get("output_tokens"),
@@ -354,12 +452,14 @@ def print_table(summary: dict, arms: list[str]) -> None:
                   f"match rate. Investigate before quoting any number. !!!")
     for arm, t in summary["totals"].items():
         if t["guard_failures"]:
-            print(f"\n  *** GUARD FAILED: {arm} arm produced DELETE/DEFER on the safety case "
+            print(f"\n  *** GUARD FAILED: {arm} arm reached a scope-losing verdict on a guard case "
                   f"{t['guard_failures']} of {t['guard_scored_runs']} scored run(s). ***")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", choices=tuple(PROFILES), default="requirement-zero",
+                        help="which skill and case corpus to evaluate (default requirement-zero)")
     parser.add_argument("--runs", type=int, default=3, help="runs per arm per case (default 3)")
     parser.add_argument("--case", help="only cases whose filename starts with this, e.g. 01")
     parser.add_argument("--arm", choices=("baseline", "skill"), help="only this arm")
@@ -370,17 +470,19 @@ def main() -> int:
     if args.self_test:
         return self_test()
 
-    cases = load_cases(args.case)
+    profile = PROFILES[args.profile]
+    cases = load_cases(profile, args.case)
     arms = [args.arm] if args.arm else ["baseline", "skill"]
-    skill = skill_body()
+    skill = skill_body(profile)
     total_calls = len(cases) * len(arms) * args.runs
-    print(f"{len(cases)} case(s) x {len(arms)} arm(s) x {args.runs} run(s) = {total_calls} CLI calls")
+    print(f"profile {args.profile}: {len(cases)} case(s) x {len(arms)} arm(s) x {args.runs} "
+          f"run(s) = {total_calls} CLI calls")
 
     records: list[dict[str, object]] = []
     for run_index in range(1, args.runs + 1):
         for case in cases:
             for arm in arms:
-                record = run_once(case, arm, skill, run_index)
+                record = run_once(case, arm, skill, run_index, profile)
                 records.append(record)
                 print(f"  run {run_index} {case['file'][:2]} {arm:<9} -> {record['verdict']}"
                       + (f"  ERROR {record['error']}" if "error" in record else ""))
@@ -391,11 +493,18 @@ def main() -> int:
     model_slug = re.sub(r"[^A-Za-z0-9.-]+", "-", models[0]) if models else "unknown-model"
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
     partial = "-partial" if (args.case or args.arm or args.runs != 3) else ""
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    out = RESULTS_DIR / f"{stamp}-{model_slug}{partial}.json"
+    # Results go under a per-profile directory. Writing both corpora to one path would have the
+    # second run overwrite the first on the same day against the same model.
+    results_dir = RESULTS_DIR if args.profile == "requirement-zero" else (
+        EVAL_DIR / args.profile / "results")
+    results_dir.mkdir(parents=True, exist_ok=True)
+    out = results_dir / f"{stamp}-{model_slug}{partial}.json"
     out.write_text(json.dumps({
         "generated_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "harness": "eval/run_eval.py",
+        "profile": args.profile,
+        "skill_under_test": str(profile["skill_path"].relative_to(REPO_ROOT)),  # type: ignore[union-attr]
+        "verdict_vocabulary": list(profile["verdicts"]),  # type: ignore[arg-type]
         "cli": "claude",
         "cli_version": subprocess.run(["claude", "--version"], capture_output=True, text=True)
                         .stdout.strip() or None,
