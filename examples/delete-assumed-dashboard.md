@@ -42,6 +42,13 @@ it, and nobody is looking at anything at 03:00.
 (a dashboard) rather than the validated need (the operator is told). The real gap is one alert
 rule on a metric that is already emitted.
 
+DELETE rather than REDUCE, and the distinction is worth being precise about: REDUCE keeps the
+proposed thing and trims it, so a reduced dashboard would still be a dashboard with fewer charts.
+Here nothing proposed survives — no UI, no charts, no rollups — and the retained alert rule is a
+different artifact reached from the objective, not a smaller version of the request. When the
+proposed solution survives in no form, the verdict is DELETE even though the underlying need is
+real and gets served.
+
 ## Scope deleted
 
 - Web UI, routing, and auth for a new operator surface
