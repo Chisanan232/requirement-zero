@@ -67,11 +67,12 @@ VERDICT: <one of DELETE, REDUCE, DEFER, BUILD, BUILD HARD>
 {body}
 """
 
-# Keyword heuristic for "did the response name what it is not building at all". The prompt asks
-# for that section explicitly in both arms, so expect this near ceiling; it is a floor check, not
-# a discriminating metric.
+# Floor check only: did the response name what it is not building at all? Both arms are asked for
+# that section explicitly, so expect this at ceiling in both. It is deliberately phrasing-agnostic
+# ("scope NOT building" / "scope NOT being built" / "deleted scope" all count) because an earlier,
+# narrower pattern measured wording differences between the arms rather than behaviour.
 DELETED_SCOPE_RE = re.compile(
-    r"(not building|deleted scope|scope deleted|scope not built|not built|dropping|removed from scope)",
+    r"(scope\s+(you\s+are\s+)?(not|deleted)\b|not\s+(being\s+)?(built|building)|deleted scope|dropping|removed from scope)",
     re.IGNORECASE,
 )
 
