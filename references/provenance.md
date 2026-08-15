@@ -77,7 +77,9 @@ If provenance cannot be established because nobody is available to ask:
 
 - Speculative scope → DEFER, and record the question you could not get answered.
 - Protective constraint → retain, and record that it is retained on the basis of unverified
-  provenance so a reviewer can see the open question.
+  provenance so a reviewer can see the open question. Any proposal to weaken it still needs the
+  owner's decision and the applicable security, legal, or compliance review — unreachable
+  provenance is not a substitute for that review.
 
 Never convert "I could not find the reason" into "there is no reason." Write down which one it
 is. The distinction is the difference between a challenged requirement and a guess.
