@@ -159,6 +159,14 @@ PROFILES: dict[str, dict[str, object]] = {
             "security", "safety", "privacy", "data-integrity", "legal", "compliance",
             "compatibility", "requirement-zero",
         ),
+        # The carve-back clause verbatim, and the categories that must follow it. Quoted in full
+        # rather than shortened to a keyword so that rewording it -- inverting it to "are never
+        # audited" keeps every category -- fails here instead of passing.
+        "carve_back_anchor": "Already-decided removals still get audited when the target is a",
+        "carve_back_terms": (
+            "security", "safety", "privacy", "data-integrity", "legal", "compliance",
+            "compatibility",
+        ),
     },
 }
 
@@ -222,6 +230,16 @@ def _assert_scoring_sets_sane() -> None:
             raise SystemExit(
                 f"profile {name!r}: required_description_terms is missing or empty; the "
                 f"description check would pass without checking anything."
+            )
+        # A carve-back needs both halves to mean anything: an anchor with no terms checks that a
+        # sentence exists without checking what it covers, and terms with no anchor are searched
+        # against the whole description, which is the weaker check this pair exists to replace.
+        anchor = profile.get("carve_back_anchor")
+        anchored = profile.get("carve_back_terms")
+        if bool(anchor) != bool(anchored):
+            raise SystemExit(
+                f"profile {name!r}: carve_back_anchor and carve_back_terms must be given together; "
+                f"one without the other checks half of what it appears to."
             )
 
 
@@ -384,14 +402,24 @@ def check_descriptions() -> list[str]:
 
     It decides whether the skill is selected at all, so an exclusion dropped from it cannot be
     recovered by any rule in the body -- the body is never read. It is also the field most often
-    edited and the one whose length was twice measured wrong. Three things are checked: it exists,
-    it fits the host's per-entry listing cap, and it still names every term the profile declares
-    load-bearing. A term silently dropped during an edit fails here rather than in production.
+    edited and the one whose length was twice measured wrong. Four things are checked: it exists,
+    it fits the host's per-entry listing cap, it still names every term the profile declares
+    load-bearing, and -- where a profile declares a carve-back -- that clause is still present and
+    still names its categories. A term silently dropped during an edit fails here, not in
+    production.
+
+    Searching for terms anywhere in the description is not enough on its own. `compatibility` also
+    appears in this skill's list of artifact types, so deleting it from the carve-back would leave
+    the term present; and inverting the clause to "are never audited, including when the target
+    is..." keeps every term while reversing what the sentence does. Hence the anchor: the terms that
+    belong to the carve-back are required in the text that follows it.
     """
     problems = []
     for name, profile in PROFILES.items():
         skill_path: Path = profile["skill_path"]  # type: ignore[assignment]
         required: tuple[str, ...] = profile["required_description_terms"]  # type: ignore[assignment]
+        anchor: str = profile.get("carve_back_anchor", "")  # type: ignore[assignment]
+        anchored: tuple[str, ...] = profile.get("carve_back_terms", ())  # type: ignore[assignment]
         description = _parsed_description(skill_path)
         if not description:
             problems.append(f"[{name}] {skill_path.name} has no description; the skill cannot be "
@@ -406,6 +434,17 @@ def check_descriptions() -> list[str]:
             problems.append(f"[{name}] description no longer names {missing}; each is a category "
                             f"the body treats as load-bearing, and the description is the only "
                             f"place that can keep the skill from being routed past it.")
+        if anchor and anchor not in description:
+            problems.append(f"[{name}] description no longer contains the carve-back clause "
+                            f"{anchor!r}; without it an already-decided removal routes past the "
+                            f"audit whatever the target is.")
+        elif anchor:
+            carve_back = description.partition(anchor)[2]
+            dropped = [term for term in anchored if term not in carve_back]
+            if dropped:
+                problems.append(f"[{name}] carve-back clause no longer covers {dropped}; the terms "
+                                f"may appear elsewhere in the description, which does not pull an "
+                                f"already-decided removal back into the audit.")
     return problems
 
 
@@ -422,8 +461,12 @@ def self_test() -> int:
     description_problems = check_descriptions()
     for problem in description_problems:
         print(f"FAIL {problem}")
-    print(f"{len(PROFILES) - len(description_problems)}/{len(PROFILES)} skill descriptions "
-          f"present, within the {DESCRIPTION_CAP}-char listing cap, and naming their required terms")
+    # Count profiles, not problems: one description can break several checks at once, and
+    # subtracting problems from profiles would print a negative pass count.
+    failed_profiles = {problem.split("]")[0].lstrip("[") for problem in description_problems}
+    print(f"{len(PROFILES) - len(failed_profiles)}/{len(PROFILES)} skill descriptions "
+          f"present, within the {DESCRIPTION_CAP}-char listing cap, naming their required terms, "
+          f"and keeping their carve-back clause intact")
     return 1 if failures or description_problems else 0
 
 
