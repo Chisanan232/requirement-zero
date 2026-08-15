@@ -15,7 +15,8 @@ BUILD HARD.
 
 Run these in order. Do not reorder — simplifying unnecessary work is wasted work, and
 automating an unproven workflow makes an unnecessary process cheaper to keep. Stop at the first
-step that produces a verdict.
+step that produces a terminal verdict — DELETE, REDUCE, or DEFER. BUILD and BUILD HARD are not
+terminal: continue to step 4 to size what gets built.
 
 1. **QUESTION** — What fundamental outcome is required, stated as an observable change for
    someone outside the codebase? Who created this requirement — a named person, an incident, a
@@ -48,6 +49,9 @@ step that produces a verdict.
    run manually often enough that its steps are known. Automating an unproven workflow converts
    a removable process into permanent infrastructure.
 
+Steps 5 and 6 apply to workflows and processes. For a single feature requirement, skip them
+silently rather than narrating them.
+
 ## Verdicts
 
 State exactly one. Do not present the five as options for the user to choose between, and do not
@@ -57,14 +61,17 @@ hedge with "it depends" — commit, then show the reasoning that can be argued w
 |---|---|
 | **DELETE** | No observer and no signal can be named for the whole requirement, or it duplicates something the system already does. |
 | **REDUCE** | The core outcome has evidence, but named parts failed the step 2 test. List every part removed. |
-| **DEFER** | Value is plausible and the only support is a prediction. Name the concrete trigger that would revive it. |
+| **DEFER** | Value is plausible but nothing is blocked today — either the only support is a prediction, or the value is real but adjacent to the core. Name the concrete trigger that would revive it. |
 | **BUILD** | Evidence supports the outcome and it is core. Build the step 4 version, nothing beyond it. |
 | **BUILD HARD** | Core, and the cheap version provably fails the outcome. Say which simplification was rejected and what it would break. |
 
 A BUILD HARD verdict is invalid unless it names the simpler version considered and the specific
 way that version fails the outcome. Without both, downgrade to BUILD and return to step 4.
 
-Verdict rules that decide common cases:
+Verdict rules that decide common cases. When several apply, the verdict describes the *whole
+requirement* while the rules describe *parts*: if the core outcome survives and only parts fail,
+that is REDUCE with those parts listed as deleted scope — even where a part-level rule below says
+DELETE.
 
 - An abstraction, interface, or plugin point with exactly one implementation and no committed
   second consumer is REDUCE — build the concrete thing. "Committed" means a named consumer with
@@ -75,8 +82,9 @@ Verdict rules that decide common cases:
   is the second case arriving.
 - Scope justified only by symmetry, consistency, or completeness ("we support X, so we should
   support Y") is DELETE unless Y has its own observer.
-- Work whose only support is a hypothetical future user, elegance, or best practice is DELETE or
-  DEFER, never BUILD.
+- Work whose only support is a hypothetical future user, elegance, or best practice is never
+  BUILD. It is DEFER if a specific event would make it necessary and that event can be named;
+  DELETE if no such event can be named.
 - If the same outcome is reachable by deleting existing code, that is the BUILD.
 
 ## Output contract
