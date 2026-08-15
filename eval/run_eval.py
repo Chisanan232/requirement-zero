@@ -412,7 +412,12 @@ def check_descriptions() -> list[str]:
     appears in this skill's list of artifact types, so deleting it from the carve-back would leave
     the term present; and inverting the clause to "are never audited, including when the target
     is..." keeps every term while reversing what the sentence does. Hence the anchor: the terms that
-    belong to the carve-back are required in the text that follows it.
+    belong to the carve-back are required inside the sentence the anchor opens, which is also why the
+    search stops at the first `.` rather than running to the end of the field -- otherwise the check
+    would hold only while the clause happens to sit last.
+
+    What this still cannot see: the clause left intact and then negated by a following sentence. That
+    is outside what substring matching can decide, and it is recorded rather than papered over.
     """
     problems = []
     for name, profile in PROFILES.items():
@@ -439,7 +444,11 @@ def check_descriptions() -> list[str]:
                             f"{anchor!r}; without it an already-decided removal routes past the "
                             f"audit whatever the target is.")
         elif anchor:
-            carve_back = description.partition(anchor)[2]
+            # Bounded to the anchor's own sentence, not the rest of the field. Taking the whole
+            # remainder makes the check depend on the clause sitting last: move it to the front and
+            # the terms searched are the rest of the description, where `compatibility` appears
+            # anyway ("compatibility layers"), so dropping it from the clause would pass.
+            carve_back = description.partition(anchor)[2].partition(".")[0]
             dropped = [term for term in anchored if term not in carve_back]
             if dropped:
                 problems.append(f"[{name}] carve-back clause no longer covers {dropped}; the terms "
