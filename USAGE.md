@@ -289,6 +289,17 @@ skill that fires on everything is worse than no skill.
 - **Deciding whether to build something new** — that is `requirement-zero`, and the description says
   so by name to keep the two from firing on each other's work.
 
+One practical constraint on all of this. Every exclusion above lives in the `description`, and the
+`description` is not guaranteed to reach the model whole: Claude Code fits the skill listing into a
+character budget that scales with the context window, and
+[shortens or drops descriptions](https://code.claude.com/docs/en/skills#skill-descriptions-are-cut-short)
+— least-used skills first — when the listing overflows, capping each entry's combined
+`description` and `when_to_use` text at 1,536 characters regardless of budget. Codebase Zero's is
+995, so the cap is not the binding constraint, but a crowded skills directory is: a truncated
+description keeps the name and can lose the exclusions. If either skill starts firing on work it
+names as excluded, check the listing budget with `/context` and `/doctor` before assuming the
+doctrine failed.
+
 Note what is deliberately *not* excluded. Requirement Zero refuses safety, security, legal, and
 compliance requirements outright, because a stated protective requirement must not be argued with.
 Codebase Zero must fire on protective code, because "should we delete this rate limiter?" gets asked
