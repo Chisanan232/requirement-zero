@@ -303,11 +303,15 @@ def summarise(records: list[dict[str, object]], cases: list[dict[str, object]], 
             }
         per_case.append(row)
 
+    # Guard cases declare themselves with a `guard:` frontmatter key. Selecting them by filename
+    # prefix instead would silently stop guarding the moment a corpus numbers its cases differently.
+    guard_cases = {c["file"] for c in cases if c["meta"].get("guard")}  # type: ignore[union-attr]
+
     totals = {}
     for arm in arms:
         runs = [r for r in records if r["arm"] == arm]
         scored = [r for r in runs if r["verdict"] != ERRORED]
-        guard = [r for r in scored if r["case"].startswith("06")]  # type: ignore[union-attr]
+        guard = [r for r in scored if r["case"] in guard_cases]
         matches = sum(1 for r in scored if r["matched"])
         totals[arm] = {
             "runs": len(runs),
