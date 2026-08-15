@@ -11,12 +11,14 @@ eval/README.md "Isolation".
 
     python3 eval/run_eval.py                      # full matrix: 6 cases x 2 arms x 3 runs
     python3 eval/run_eval.py --runs 1 --case 01   # one cheap pair of calls
+    python3 eval/run_eval.py --self-test          # verdict-extraction checks, no calls
 """
 
 from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import re
 import subprocess
@@ -119,21 +121,75 @@ def load_cases(case_filter: str | None) -> list[dict[str, object]]:
 def skill_body() -> str:
     """The shipped skill, read from disk at run time so the eval always tests what ships."""
     _, body = parse_frontmatter(SKILL_PATH.read_text(encoding="utf-8"))
+    if not body.strip():
+        raise SystemExit(  # otherwise both arms silently become identical and report a null result
+            f"{SKILL_PATH.name} has an empty body: the skill arm would be identical to baseline."
+        )
     return body
+
+
+# Verdict tails seen in practice carry Markdown emphasis, backticks, quote markers, non-breaking
+# spaces, and hyphenated forms. Normalise all of that away before matching, or BUILD HARD gets
+# silently misread as BUILD -- which corrupts the one metric everything else rests on.
+_TAIL_STRIP = "*_`>#~\"'. \t "
+
+
+def _normalise_tail(tail: str) -> str:
+    for ch in (" ", "*", "`", "_", "-"):
+        tail = tail.replace(ch, " ")
+    return re.sub(r"\s+", " ", tail).strip().upper()
 
 
 def extract_verdict(text: str) -> str:
     """Read the final `VERDICT:` line. Never guess: anything else is UNPARSEABLE."""
     for line in reversed(text.strip().splitlines()):
-        line = line.strip().strip("*_# ")
-        if not line.upper().startswith("VERDICT"):
+        line = line.strip().strip(_TAIL_STRIP)
+        if not line.upper().lstrip(_TAIL_STRIP).startswith("VERDICT"):
             continue
-        tail = line.split(":", 1)[-1].strip().upper().strip("*_. ")
+        tail = _normalise_tail(line.split(":", 1)[-1])
         for verdict in VERDICTS:  # BUILD HARD before BUILD
             if tail.startswith(verdict):
                 return verdict
         return UNPARSEABLE
     return UNPARSEABLE
+
+
+# (input, expected) pairs for --self-test. Costs nothing and defends verdict extraction, which
+# every other metric depends on.
+SELF_TEST_CASES = (
+    ("VERDICT: BUILD HARD", "BUILD HARD"),
+    ("VERDICT: BUILD **HARD**", "BUILD HARD"),
+    ("VERDICT: BUILD  HARD", "BUILD HARD"),
+    ("VERDICT: BUILD-HARD", "BUILD HARD"),
+    ("VERDICT: BUILD_HARD", "BUILD HARD"),
+    ("VERDICT: BUILD HARD", "BUILD HARD"),
+    ("VERDICT: `BUILD HARD`", "BUILD HARD"),
+    ("> VERDICT: BUILD HARD", "BUILD HARD"),
+    ("**VERDICT: BUILD HARD**", "BUILD HARD"),
+    ("prose\n\nVERDICT: BUILD HARD.", "BUILD HARD"),
+    ("VERDICT: BUILD", "BUILD"),
+    ("verdict: build", "BUILD"),
+    ("**VERDICT: DELETE**", "DELETE"),
+    ("VERDICT: `DEFER`", "DEFER"),
+    ("VERDICT: REDUCE", "REDUCE"),
+    ("VERDICT: maybe", UNPARSEABLE),
+    ("no verdict line at all", UNPARSEABLE),
+    ("", UNPARSEABLE),
+    ("VERDICT: BUILD HARD\nVERDICT: DELETE", "DELETE"),  # last line wins
+)
+
+
+def self_test() -> int:
+    failures = [
+        (raw, expected, got)
+        for raw, expected in SELF_TEST_CASES
+        if (got := extract_verdict(raw)) != expected
+    ]
+    for raw, expected, got in failures:
+        print(f"FAIL {raw!r}: expected {expected!r}, got {got!r}")
+    print(f"{len(SELF_TEST_CASES) - len(failures)}/{len(SELF_TEST_CASES)} "
+          f"verdict-extraction cases pass")
+    return 1 if failures else 0
 
 
 def call_claude(prompt: str, system_prompt: str | None) -> dict[str, object]:
@@ -303,7 +359,12 @@ def main() -> int:
     parser.add_argument("--runs", type=int, default=3, help="runs per arm per case (default 3)")
     parser.add_argument("--case", help="only cases whose filename starts with this, e.g. 01")
     parser.add_argument("--arm", choices=("baseline", "skill"), help="only this arm")
+    parser.add_argument("--self-test", action="store_true",
+                        help="check verdict extraction against known tricky strings; makes no calls")
     args = parser.parse_args()
+
+    if args.self_test:
+        return self_test()
 
     cases = load_cases(args.case)
     arms = [args.arm] if args.arm else ["baseline", "skill"]
@@ -338,6 +399,12 @@ def main() -> int:
         "models_observed": models,
         "runs_per_arm_per_case": args.runs,
         "arms": arms,
+        # Machine-verified identity of the skill under test: survives file moves and does not rot
+        # the way a hand-typed commit SHA does.
+        "skill_body_sha256": hashlib.sha256(skill.encode("utf-8")).hexdigest(),
+        "skill_body_chars": len(skill),
+        # Flags that make the run reproducible by a stranger, regardless of working directory.
+        "isolation_flags": ["--tools", "", "--safe-mode"],
         "filters": {"case": args.case, "arm": args.arm},
         "cases": [{"file": c["file"], **c["meta"]} for c in cases],  # type: ignore[dict-item]
         "summary": summary,
