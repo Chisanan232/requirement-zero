@@ -196,9 +196,10 @@ available skills, reported **both** `requirement-zero` and `codebase-zero`. That
 discovery by the agent, not just files on disk.
 
 **What was not verified.** The CLI accepts `--agent codex`, and the separate run that added
-`--agent codex -g` reported writing a `universal: Codex` entry to
-`~/.agents/skills/`. Only that file placement was
-observed. Codex was not installed in the test environment, so **no Codex session ever loaded
+`--agent claude-code --agent codex -g` reported writing a `universal: Codex` entry to
+`~/.agents/skills/`. That two-agent form is what produces the label: `--agent codex -g` on its own
+reports `copy → Codex` into `~/.agents/skills/` and prints no `universal:` line at all, because a
+single target directory forces copy mode. Only that file placement was observed. Codex was not installed in the test environment, so **no Codex session ever loaded
 these skills** — the Codex row remains untested, exactly as the [Compatibility](#compatibility)
 section says. Of the agents the CLI supports, only `claude-code` was exercised end to end.
 
