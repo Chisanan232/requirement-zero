@@ -6,12 +6,15 @@
 
 Before Requirement #1 comes Requirement #0: prove that the requirement deserves to exist.
 
-Requirement Zero is an [Agent Skill](https://code.claude.com/docs/en/skills) that makes an AI
-coding agent challenge a requirement *before* it plans or writes code.
+This repository holds two [Agent Skills](https://code.claude.com/docs/en/skills) that make an AI
+coding agent ask whether work deserves to exist, at the two points where that question is still
+cheap to answer. **Requirement Zero** challenges a requirement *before* the agent plans or writes
+code. **[Codebase Zero](skills/codebase-zero/SKILL.md)** audits an artifact that already exists and
+asks whether it still deserves to — see [that section](#codebase-zero) below.
 
-This repository holds two skills. **Requirement Zero** challenges a requirement before it is built.
-**[Codebase Zero](skills/codebase-zero/SKILL.md)** audits an artifact that already exists and asks
-whether it still deserves to exist — see [that section](#codebase-zero) below.
+Both are Markdown files. There is no package, server, or runtime: installing them is a `git clone`,
+and each has a published evaluation run whose results, including where they show no measurable
+effect, are summarised below.
 
 ## Install
 
