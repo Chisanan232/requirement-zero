@@ -136,8 +136,8 @@ skills, so verify it yourself on another host rather than assuming it carries ov
 ### Installing with the `skills` CLI
 
 The [`skills` CLI](https://github.com/vercel-labs/skills) installs skills from a GitHub
-repository. It works against this repository, but **only with `--full-depth`** — that flag is not
-optional here, and the reason is the same nesting described above.
+repository. It works against this repository, but `--full-depth` is **required, not optional**:
+without it the CLI finds only Requirement Zero. The reason is the same nesting described above.
 
 ```bash
 npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code
