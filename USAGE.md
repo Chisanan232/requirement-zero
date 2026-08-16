@@ -188,8 +188,9 @@ across too, so the installed `requirement-zero` directory is *also* loaded as a 
 plugin. At global scope a probe listed **three** entries: `requirement-zero`, `codebase-zero`, and
 `requirement-zero:codebase-zero` — Codebase Zero twice, once flattened and once namespaced through
 the plugin. Those are two separate copies of the file, not one — different inodes, and `realpath`
-resolves each to itself — so they can drift apart if you edit one. As long as they match, the
-behaviour is the same whichever fires; the cost is a duplicate always-on description in the listing
+resolves each to itself — so they can drift apart if you edit one. While they match, both names load
+the same body; which of the two the agent picks was not observed. The cost is a duplicate always-on
+description in the listing
 (`plugin details` puts the plugin's share at ~260 tok). Deleting `.claude-plugin/` from the
 installed `requirement-zero` directory removes the duplicate. Project scope behaves the same way
 once the workspace is trusted; before that, Claude Code refuses to load the plugin directory
