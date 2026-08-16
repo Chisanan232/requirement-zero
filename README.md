@@ -31,7 +31,7 @@ Or install both with the [`skills` CLI](https://github.com/vercel-labs/skills), 
 pair into siblings so no symlink is needed:
 
 ```bash
-npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code
+npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code -y
 ```
 
 `--full-depth` is required, not optional: without it the CLI finds only Requirement Zero, because

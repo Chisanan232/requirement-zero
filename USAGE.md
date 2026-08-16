@@ -140,7 +140,7 @@ repository. It works against this repository, but `--full-depth` is **required, 
 without it the CLI finds only Requirement Zero. The reason is the same nesting described above.
 
 ```bash
-npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code
+npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code -y
 ```
 
 Without `--full-depth` the CLI finds **one** skill. Its own documented rule is that "a `SKILL.md`
@@ -166,14 +166,15 @@ necessarily what the agent loads.
 Installing one skill rather than both is supported, by name:
 
 ```bash
-npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill codebase-zero --agent claude-code
+npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill codebase-zero --agent claude-code -y
 ```
 
 That reported `Selected 1 skill: codebase-zero` and installed only that one.
 
-Two scopes were exercised. Project scope copies into `.claude/skills/` in the current directory;
-it is the first option at the CLI's interactive scope prompt rather than a silent default, so
-either answer the prompt or pass `-y` as the commands above do. Global scope (`-g`) with
+Two scopes were exercised. Project scope copies into `.claude/skills/` in the current directory
+and also writes a `skills-lock.json` at the directory root, which you may want to gitignore. It is
+the first option at the CLI's interactive scope prompt rather than a silent default: the `-y` on
+the commands above takes that default without prompting, and dropping `-y` gives you the prompt. Global scope (`-g`) with
 `--agent claude-code` alone also **copies**, straight into `~/.claude/skills/` — no
 `~/.agents/skills/` directory is created and no symlink is made. The `~/.agents/skills/` layout
 with symlinks into `~/.claude/skills/` appears only when a universal-directory agent is also
