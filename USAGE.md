@@ -146,8 +146,9 @@ skills, so verify it yourself on another host rather than assuming it carries ov
 ### Installing with the `skills` CLI
 
 The [`skills` CLI](https://github.com/vercel-labs/skills) installs skills from a GitHub
-repository. It works against this repository, but `--full-depth` is **required, not optional**:
-without it the CLI finds only Requirement Zero. The reason is the same nesting described above.
+repository. It works against this repository, and `--full-depth` is what gets Codebase Zero
+installed **under its own bare name**: without the flag the CLI finds only Requirement Zero. The
+reason is the same nesting described above.
 
 ```bash
 npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code -y
@@ -163,8 +164,12 @@ npx skills@1.5.22 add Chisanan232/requirement-zero --list              # Found 1
 npx skills@1.5.22 add Chisanan232/requirement-zero --list --full-depth # Found 2 skills
 ```
 
-So `--full-depth` is the difference between getting Requirement Zero alone and getting both
-skills. With it, the CLI reports `Found 2 skills` and installs both.
+So `--full-depth` is the difference between the CLI selecting one skill and selecting two. With it,
+the CLI reports `Found 2 skills` and installs both. It is **not** the difference between having
+Codebase Zero and not having it: since this repository added `.claude-plugin/`, the copied
+`requirement-zero` directory is itself loaded as a plugin, and a global install *without*
+`--full-depth` still produced `requirement-zero:codebase-zero` alongside `requirement-zero` in a
+live probe. The flag governs the bare name, not availability.
 
 Unlike the clone-plus-symlink route, the CLI **flattens** the pair: it writes
 `requirement-zero` and `codebase-zero` as sibling directories, so no symlink is needed and
