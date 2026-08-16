@@ -292,9 +292,9 @@ Three costs come with that, and all three fall on users rather than on this repo
   `v0.2.0` git tags and GitHub releases remain the way to reference a fixed version of the skills
   themselves, and via `@<tag>` they now also pin this route.
 
-What was tested, on 2.1.226: `validate`, `marketplace add` from a local directory path,
-`plugin install`, `plugin details`, `marketplace update`, `plugin update`, and a live `-p`
-discovery probe, all under a throwaway `CLAUDE_CONFIG_DIR`.
+What was tested, on 2.1.226: `validate`, `marketplace add` from both a local directory path and the
+GitHub shorthand with an explicit `@<ref>`, `plugin install`, `plugin details`, `marketplace update`,
+`plugin update`, and a live `-p` discovery probe, all under a throwaway `CLAUDE_CONFIG_DIR`.
 
 **Adding `.claude-plugin/` changes the plain clone route, and that is worth knowing before you
 install.** The clone-plus-symlink route is unaffected: the same probe still reported bare
@@ -317,12 +317,15 @@ context you did not explicitly ask for. If you want Requirement Zero alone, dele
 **not** an alternative: it copies the whole repository tree including `.claude-plugin/`, and a probe
 after that install still listed `requirement-zero:codebase-zero`.
 
-What was **NOT** tested: `claude plugin marketplace add Chisanan232/requirement-zero` against the
-published GitHub repository. The command above is the documented GitHub-shorthand form, but these
-manifests reach `main` only when this change merges, and the shorthand resolves against the
-default branch. Run it and check `claude plugin marketplace list` before trusting it. Local
-bare-git sources were rejected outright (`Invalid marketplace source format`), so a local clone is
-not a substitute for that check.
+The GitHub shorthand *was* tested, but only in its `@<ref>` form: adding
+`Chisanan232/requirement-zero@<branch>` cloned over HTTPS, validated, installed, reported
+`Skills (2)`, and a live probe listed both namespaced skills. What was **NOT** tested is the bare
+form printed above — `claude plugin marketplace add Chisanan232/requirement-zero` — because it
+resolves against the default branch, and these manifests reach `main` only when this change merges.
+Run it and check `claude plugin marketplace list` before trusting it. A local *bare* git repository
+is not a substitute: a plain path to one fails with `Marketplace file not found at
+<path>/.claude-plugin/marketplace.json`, and the `file://` form is rejected with
+`Invalid marketplace source format`.
 
 ## Invoking it
 
