@@ -314,12 +314,12 @@ whoever installs it:
   tags and GitHub releases remain the way to reference a fixed version of the skills themselves
   via `git clone`.
 
-What was tested, on 2.1.226: `validate`, `marketplace add` from both a local directory path and the
-GitHub shorthand with an explicit `@<branch>` ref, `plugin install`, `plugin details`,
-`marketplace update`, `plugin update`, and a live `-p` discovery probe, all under a throwaway
-`CLAUDE_CONFIG_DIR`. The `@<tag>` form was tested only to the point of proving it *fails* against
-the existing tags; a tag that does carry the manifests does not exist yet, so pinning to one is
-**NOT tested**.
+What was tested, on 2.1.226: `validate` both plain and `--strict`, `plugin tag`, `marketplace add`
+from both a local directory path and the GitHub shorthand with an explicit `@<branch>` ref,
+`plugin install`, `plugin details`, `plugin list`, `marketplace update`, `plugin update`, and a
+live `-p` discovery probe, all under a throwaway `CLAUDE_CONFIG_DIR`. The `@<tag>` form was tested
+only to the point of proving it *fails* against the existing tags; a tag that does carry the
+manifests does not exist yet, so pinning to one is **NOT tested**.
 
 **Adding `.claude-plugin/` changes the plain clone route, and that is worth knowing before you
 install.** The clone-plus-symlink route keeps the names it always had: the same probe still
