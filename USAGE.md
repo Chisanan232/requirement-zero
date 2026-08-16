@@ -362,14 +362,16 @@ requirement-zero` with the `skills` CLI is **not** an alternative: it copies the
 tree including `.claude-plugin/`, and a probe after that install still listed
 `requirement-zero:codebase-zero`.
 
-The GitHub shorthand *was* tested, but only in its `@<branch>` form: adding
-`Chisanan232/requirement-zero@<branch>` cloned over HTTPS, validated, installed, reported
-`Skills (2)`, and a live probe listed both namespaced skills. Two forms were **NOT** tested. One is
-the bare form printed above — `claude plugin marketplace add Chisanan232/requirement-zero` —
-because it resolves against the default branch, and these manifests reach `main` only when this
-change merges — run that one and check `claude plugin marketplace list` before trusting it. The
-other is `@<tag>` pinning, which cannot be run at all yet, for the reason given above: no tag
-carrying the manifests exists.
+The GitHub shorthand was tested in two forms. The bare form printed above — `claude plugin
+marketplace add Chisanan232/requirement-zero` — was run against `main` once these manifests landed
+there: it cloned over HTTPS, validated, and `claude plugin marketplace list` reported
+`requirement-zero  Source: GitHub (Chisanan232/requirement-zero)`. `plugin install` then succeeded
+at user scope, `plugin details` reported `Skills (2) codebase-zero, requirement-zero` at `~395
+tok` always-on, `plugin list` reported a `Version:` equal to `git rev-parse --short=12 HEAD` on
+`main`, and a live probe listed `requirement-zero:requirement-zero` and
+`requirement-zero:codebase-zero`. The `@<branch>` form was tested the same way earlier. Still
+**NOT** tested is `@<tag>` pinning, which cannot be run at all yet, for the reason given above: no
+tag carrying the manifests exists.
 
 A local *bare* git repository is not a substitute for either check: a plain path to one fails with
 `Marketplace file not found at <path>/.claude-plugin/marketplace.json`, and the `file://` form is
