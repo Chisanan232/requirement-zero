@@ -278,7 +278,8 @@ committing that same edit moved it to the new commit's SHA. Updates therefore tr
 the marketplace was added at — the default branch unless you named one — and there is no version
 string to bump at release time.
 
-Three costs come with that, and all three fall on users rather than on this repository:
+Three costs come with that. The first two land on whoever maintains this repository, the third on
+whoever installs it:
 
 - `claude plugin validate . --strict` fails on the resulting "No version specified" warning; plain
   `claude plugin validate .` passes with that one warning.
