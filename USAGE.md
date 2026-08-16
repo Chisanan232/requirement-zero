@@ -238,6 +238,12 @@ rather than replacing it, so listing `"./"` picks up the root skill as well. Mea
 `claude plugin details requirement-zero` reports `Skills (1) codebase-zero` with `plugin.json`
 removed, and `Skills (2) codebase-zero, requirement-zero` with it present.
 
+One fragility for anyone editing that field: the "adds to the default" rule has an exception for a
+marketplace entry whose `source` resolves to the marketplace root, which is exactly this layout —
+there, declaring *specific subdirectories* replaces the default `skills/` scan instead of extending
+it. Listing the plugin root (`"./"`) is what keeps the full scan. So narrowing `skills` to a
+specific path later would silently drop `codebase-zero`.
+
 To install:
 
 ```bash
