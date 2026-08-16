@@ -130,7 +130,8 @@ the enterprise, personal, or project locations can be a symlink to a directory e
 Claude Code follows the symlink and reads `SKILL.md` from the target directory" — and notes that a
 target reachable from two locations is still loaded once.
 
-Copying works equally well if you would rather not use a symlink:
+Copying gets both skills under their bare names too, if you would rather not use a symlink, but it
+is no longer equivalent — see the trade below:
 
 ```bash
 cp -R ~/.claude/skills/requirement-zero/skills/codebase-zero ~/.claude/skills/codebase-zero
