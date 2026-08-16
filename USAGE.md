@@ -284,13 +284,16 @@ Three costs come with that, and all three fall on users rather than on this repo
 - `claude plugin tag` cannot run: `No version to tag. Set "version" in .claude-plugin/plugin.json`.
 - **No semver exists to depend on.** No other plugin can express a dependency constraint on this
   one (`"dependencies": {"requirement-zero": "~0.2.0"}`), because that needs an explicit version
-  string. You *can* still pin what you install: the GitHub shorthand accepts a ref, so
-  `claude plugin marketplace add Chisanan232/requirement-zero@v0.2.0` holds the marketplace at that
-  tag instead of following the default branch — tested against a branch ref, where `plugin update`
-  reported `already at the latest version` rather than moving. What you cannot do is pin by
-  *release name*: the version reported is always the commit SHA. The repository's own `v0.1.0` and
-  `v0.2.0` git tags and GitHub releases remain the way to reference a fixed version of the skills
-  themselves, and via `@<tag>` they now also pin this route.
+  string. You *can* pin what you install, with one caveat that matters right now: the GitHub
+  shorthand accepts a ref (`owner/repo@<ref>`), and the marketplace then stays on that ref instead
+  of following the default branch — tested against a branch ref, where `plugin update` reported
+  `already at the latest version` rather than moving. But the ref has to be one that *contains*
+  `.claude-plugin/`, and **neither existing release tag does**: both `v0.1.0` and `v0.2.0` predate
+  these manifests, so `marketplace add Chisanan232/requirement-zero@v0.2.0` fails with
+  `Marketplace file not found`. Tag-pinning this route only becomes possible from the first release
+  tagged after this change lands. Even then you cannot pin by *release name* in the version string
+  itself: the version reported is always the commit SHA. The `v0.1.0` and `v0.2.0` tags and GitHub
+  releases remain the way to reference a fixed version of the skills themselves via `git clone`.
 
 What was tested, on 2.1.226: `validate`, `marketplace add` from both a local directory path and the
 GitHub shorthand with an explicit `@<ref>`, `plugin install`, `plugin details`, `marketplace update`,
