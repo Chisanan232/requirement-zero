@@ -252,6 +252,7 @@ skills/codebase-zero/     Codebase Zero: SKILL.md, 3 references, 7 worked audits
                           and DIFFERENTIATION.md
 eval/                     the shared harness, Requirement Zero's 6 cases, published results
 eval/codebase-zero/       Codebase Zero's 7 cases and published results
+.claude-plugin/           2 manifests for the Claude Code plugin route, naming the files above
 USAGE.md                  installation, triggers, verdicts, safety boundaries, compatibility
 README.md                 this file
 LICENSE                   MIT
