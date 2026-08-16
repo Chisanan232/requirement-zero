@@ -337,14 +337,16 @@ in two fresh config directories against both revisions:
 
 A clone dropped into a skills directory is now also picked up as a skills-directory plugin, which
 contributes `codebase-zero` via that plugin's own `skills/` scan — `claude plugin details
-requirement-zero` reports `Skills (1) codebase-zero` for this route, not two, because the root skill
-still arrives the old way through the skills-directory scan rather than through the plugin. The
-practical effect is that the symlink is no longer required to get Codebase Zero — but the second
-skill arrives under the namespaced name `requirement-zero:codebase-zero`, and it is always-on
-context you did not explicitly ask for. If you want Requirement Zero alone, delete
-`.claude-plugin/` from your clone. Note that `--skill requirement-zero` with the `skills` CLI is
-**not** an alternative: it copies the whole repository tree including `.claude-plugin/`, and a probe
-after that install still listed `requirement-zero:codebase-zero`.
+requirement-zero` reports `Skills (1) codebase-zero` for this route, not two, because the root
+skill still arrives the old way through the skills-directory scan rather than through the plugin.
+The practical effect is that the symlink is no longer required to get Codebase Zero *at all* — it
+is still required to get it under the bare name `codebase-zero`, which is the name this document
+and any `CLAUDE.md` use. Without it the second skill arrives under the namespaced name
+`requirement-zero:codebase-zero`, and it is always-on context you did not explicitly ask for. If
+you want Requirement Zero alone, delete `.claude-plugin/` from your clone. Note that `--skill
+requirement-zero` with the `skills` CLI is **not** an alternative: it copies the whole repository
+tree including `.claude-plugin/`, and a probe after that install still listed
+`requirement-zero:codebase-zero`.
 
 The GitHub shorthand *was* tested, but only in its `@<branch>` form: adding
 `Chisanan232/requirement-zero@<branch>` cloned over HTTPS, validated, installed, reported
