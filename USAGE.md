@@ -366,11 +366,13 @@ tree including `.claude-plugin/`, and a probe after that install still listed
 The GitHub shorthand was tested in two forms. The bare form printed above —
 `claude plugin marketplace add Chisanan232/requirement-zero` — was run against `main` once these
 manifests landed there: it cloned over HTTPS, validated, and `claude plugin marketplace list`
-listed it with `Source: GitHub (Chisanan232/requirement-zero)`. `plugin install` then
-succeeded at user scope, `plugin details` reported `Skills (2) codebase-zero, requirement-zero` at
-`~395 tok` always-on, `plugin list` reported a `Version:` equal to `git rev-parse --short=12 HEAD`
-on `main`, and a live probe listed `requirement-zero:requirement-zero` and
-`requirement-zero:codebase-zero`. The `@<branch>` form was tested the same way earlier. Still
+listed it with `Source: GitHub (Chisanan232/requirement-zero)`. `plugin install` then succeeded at
+user scope, `plugin details` reported `Skills (2) codebase-zero, requirement-zero` at `~395 tok`
+always-on, `plugin list` reported a `Version:` equal to `git rev-parse --short=12 HEAD` on `main`,
+and a live probe listed `requirement-zero:requirement-zero` and `requirement-zero:codebase-zero`.
+The `@<branch>` form was tested earlier against a branch of this repository that carried the
+manifests before they reached `main`, and to a narrower set of checks: it cloned over HTTPS,
+validated, installed, reported `Skills (2)`, and a live probe listed both namespaced skills. Still
 **NOT** tested is `@<tag>` pinning, which cannot be run at all yet, for the reason given above: no
 tag carrying the manifests exists.
 
