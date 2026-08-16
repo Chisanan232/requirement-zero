@@ -180,10 +180,10 @@ the first option at the CLI's interactive scope prompt rather than a silent defa
 the commands above takes that default without prompting, and dropping `-y` gives you the prompt.
 Global scope (`-g`) with
 `--agent claude-code` alone also **copies**, straight into `~/.claude/skills/` — no
-`~/.agents/skills/` directory is created and no symlink is made. The `~/.agents/skills/` layout
-with symlinks into `~/.claude/skills/` appears only when a universal-directory agent is also
-targeted; adding `--agent codex` produced exactly that, and both symlinks resolved to a readable
-`SKILL.md`.
+`~/.agents/skills/` directory is created and no symlink is made. The layout where the real
+directories sit in `~/.agents/skills/` and `~/.claude/skills/` holds symlinks pointing at them
+appears only when a universal-directory agent is also targeted; adding `--agent codex` to the
+claude-code target produced exactly that, and both symlinks resolved to a readable `SKILL.md`.
 
 **Telemetry.** The CLI reports installs to its own upstream by default; set `DISABLE_TELEMETRY=1`
 or `DO_NOT_TRACK=1` to opt out. That is the CLI's behaviour, not this project's — nothing here
