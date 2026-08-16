@@ -299,8 +299,9 @@ whoever installs it:
   `claude plugin validate .` passes with that one warning.
 - `claude plugin tag` cannot run: `No version to tag. Set "version" in .claude-plugin/plugin.json`.
 - **No semver exists to depend on.** No other plugin can express a dependency constraint on this
-  one (`"dependencies": {"requirement-zero": "~0.2.0"}`), because that needs an explicit version
-  string. You *can* pin what you install, with one caveat that matters right now: the GitHub
+  one (`"dependencies": [{"name": "requirement-zero", "version": "~0.2.0"}]`), because that needs
+  an explicit version string. You *can* pin what you install, with one caveat that matters right
+  now: the GitHub
   shorthand accepts a ref (`owner/repo@<ref>`), and the marketplace then stays on that ref instead
   of following the default branch — tested against a branch ref, where `plugin update` reported
   `already at the latest version` rather than moving. But the ref has to be one that *contains*
