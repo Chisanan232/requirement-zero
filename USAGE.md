@@ -267,9 +267,24 @@ Three costs come with that, and all three fall on users rather than on this repo
 
 What was tested, on 2.1.226: `validate`, `marketplace add` from a local directory path,
 `plugin install`, `plugin details`, `marketplace update`, `plugin update`, and a live `-p`
-discovery probe, all under a throwaway `CLAUDE_CONFIG_DIR`. Adding `.claude-plugin/` was also
-checked against the clone route and does not disturb it — the same probe still reported bare
-`requirement-zero` and `codebase-zero`.
+discovery probe, all under a throwaway `CLAUDE_CONFIG_DIR`.
+
+**Adding `.claude-plugin/` changes the plain clone route, and that is worth knowing before you
+install.** The clone-plus-symlink route is unaffected: the same probe still reported bare
+`requirement-zero` and `codebase-zero`. But a clone *without* the symlink now behaves differently
+than it did before this change. Measured in two fresh config directories against both revisions:
+
+| Clone-only install | Skills the agent lists | `claude plugin list` |
+| --- | --- | --- |
+| before this change | `requirement-zero` only | `No plugins installed.` |
+| with `.claude-plugin/` | `requirement-zero` **and** `requirement-zero:codebase-zero` | loaded as `requirement-zero@skills-dir` |
+
+A clone dropped into a skills directory is now also picked up as a skills-directory plugin, and
+that plugin's manifest declares both skills. The practical effect is that the symlink is no longer
+required to get Codebase Zero — but the second skill arrives under the namespaced name
+`requirement-zero:codebase-zero`, and it is always-on context you did not explicitly ask for. If
+you want Requirement Zero alone, delete `.claude-plugin/` from your clone or use `--skill
+requirement-zero` with the `skills` CLI.
 
 What was **NOT** tested: `claude plugin marketplace add Chisanan232/requirement-zero` against the
 published GitHub repository. The command above is the documented GitHub-shorthand form, but these
