@@ -720,9 +720,11 @@ with no install tooling, no package manager, and no configuration changes, then:
    frontmatter states.
 
 Also established during that testing, and recorded here so nobody repeats it: a skill nested inside
-another skill's directory is not discovered, and `--plugin-dir <clone>` loads that nested skill but
-under a plugin namespace and at the cost of shadowing the root one. `~/.claude/skills/` is the path
-that works. `CLAUDE_CONFIG_DIR` does relocate discovery on
+another skill's directory is not discovered by the skills-directory scan under its own bare name.
+`--plugin-dir <clone>` used to load that nested skill under a plugin namespace while shadowing the
+root one; that is no longer true now that this repository ships `.claude-plugin/plugin.json`
+declaring `"skills": ["./"]`, and the flag now lists both. `~/.claude/skills/` is still the path
+that works for bare names. `CLAUDE_CONFIG_DIR` does relocate discovery on
 this version — see [Confirming it installed](#confirming-it-installed) for why that is a testing
 convenience rather than an install path.
 
