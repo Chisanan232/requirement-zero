@@ -238,11 +238,19 @@ rather than replacing it, so listing `"./"` picks up the root skill as well. Mea
 `claude plugin details requirement-zero` reports `Skills (1) codebase-zero` with `plugin.json`
 removed, and `Skills (2) codebase-zero, requirement-zero` with it present.
 
-One fragility for anyone editing that field: the "adds to the default" rule has an exception for a
-marketplace entry whose `source` resolves to the marketplace root, which is exactly this layout —
-there, declaring *specific subdirectories* replaces the default `skills/` scan instead of extending
-it. Listing the plugin root (`"./"`) is what keeps the full scan. So narrowing `skills` to a
-specific path later would silently drop `codebase-zero`.
+Two fragilities for anyone editing that field, both measured against this layout with a third
+throwaway skill added to tell the cases apart:
+
+- **The exception attaches to the `marketplace.json` *entry*, not to `plugin.json`.** The
+  "adds to the default" rule has an exception for a marketplace entry whose `source` resolves to the
+  marketplace root, which is exactly this layout. Adding a `skills` field to the *entry* replaces
+  the default `skills/` scan and **overrides the shipped `plugin.json` entirely**: with
+  `plugin.json` at `["./"]` and the entry narrowed to one subdirectory, only that subdirectory's
+  skill loaded and `codebase-zero` was dropped. Narrowing `plugin.json`'s own `skills` does *not*
+  do this — the default scan still ran and `codebase-zero` survived.
+- **`"./"` in `plugin.json` is still required.** Removing the field altogether, from both files,
+  drops the marketplace route back to `Skills (1) codebase-zero` — the root `SKILL.md` is only
+  picked up because `"./"` is listed.
 
 To install:
 
