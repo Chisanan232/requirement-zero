@@ -330,9 +330,10 @@ The GitHub shorthand *was* tested, but only in its `@<branch>` form: adding
 `Skills (2)`, and a live probe listed both namespaced skills. Two forms were **NOT** tested. One is
 the bare form printed above — `claude plugin marketplace add Chisanan232/requirement-zero` —
 because it resolves against the default branch, and these manifests reach `main` only when this
-change merges. The other is `@<tag>` pinning, for the reason given above: no tag carrying the
-manifests exists yet.
-Run it and check `claude plugin marketplace list` before trusting it. A local *bare* git repository
+change merges — run that one and check `claude plugin marketplace list` before trusting it. The
+other is `@<tag>` pinning, which cannot be run at all yet, for the reason given above: no tag
+carrying the manifests exists.
+A local *bare* git repository
 is not a substitute: a plain path to one fails with `Marketplace file not found at
 <path>/.claude-plugin/marketplace.json`, and the `file://` form is rejected with
 `Invalid marketplace source format`.
