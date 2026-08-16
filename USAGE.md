@@ -285,12 +285,14 @@ Updates are `claude plugin marketplace update requirement-zero` followed by
 The plugin carries no `version` field. With none set, Claude Code
 [falls back to the git commit SHA of the plugin's source](https://code.claude.com/docs/en/plugins-reference#version-management),
 shortened to 12 characters — so **an update lands when a commit reaches the branch you installed
-from, not when a file changes.** Tested: installing from a clone at commit `b28d9d5` reported
-`Version: b28d9d59c67b`, exactly `git rev-parse --short=12 HEAD`. Editing a file *without*
-committing and then running both update commands reported `already at the latest version`;
-committing that same edit moved it to the new commit's SHA. Updates therefore track whichever ref
-the marketplace was added at — the default branch unless you named one — and there is no version
-string to bump at release time.
+from, not when a file changes.** Tested: installing from a clone reported a `Version:` equal to
+`git rev-parse --short=12 HEAD` in that clone. No literal SHA is quoted here on purpose — rebasing
+a branch replaces its commits, which would leave any SHA printed here unresolvable for a reader;
+run the two commands side by side instead and compare. Editing a file *without* committing and
+then running both update commands reported `already at the latest version`; committing that same
+edit moved it to the new commit's SHA. Updates therefore track whichever ref the marketplace was
+added at — the default branch unless you named one — and there is no version string to bump at
+release time.
 
 Three costs come with that. The first two land on whoever maintains this repository, the third on
 whoever installs it:
