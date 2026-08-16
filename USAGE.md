@@ -356,10 +356,10 @@ because it resolves against the default branch, and these manifests reach `main`
 change merges — run that one and check `claude plugin marketplace list` before trusting it. The
 other is `@<tag>` pinning, which cannot be run at all yet, for the reason given above: no tag
 carrying the manifests exists.
-A local *bare* git repository
-is not a substitute: a plain path to one fails with `Marketplace file not found at
-<path>/.claude-plugin/marketplace.json`, and the `file://` form is rejected with
-`Invalid marketplace source format`.
+
+A local *bare* git repository is not a substitute for either check: a plain path to one fails with
+`Marketplace file not found at <path>/.claude-plugin/marketplace.json`, and the `file://` form is
+rejected with `Invalid marketplace source format`.
 
 ## Invoking it
 
