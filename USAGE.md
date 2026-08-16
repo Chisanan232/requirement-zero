@@ -323,7 +323,7 @@ whoever installs it:
   that *contains* `.claude-plugin/`, and **neither existing release tag does**: both `v0.1.0` and
   `v0.2.0` predate these manifests, so `marketplace add Chisanan232/requirement-zero@v0.2.0` fails
   with `Marketplace file not found`. Tag-pinning this route only becomes possible from the first
-  release tagged after this change lands. Even then you cannot pin by *release name* in the
+  release tagged after those manifests landed. Even then you cannot pin by *release name* in the
   version string itself: the version reported is always the commit SHA. The `v0.1.0` and `v0.2.0`
   tags and GitHub releases remain the way to reference a fixed version of the skills themselves
   via `git clone`.
