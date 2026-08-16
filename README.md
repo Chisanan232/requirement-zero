@@ -51,7 +51,20 @@ happens once you have trusted the workspace.) That command installs into the **c
 add `-g` for the personal location used above. Verified on CLI 1.5.22 with Claude Code 2.1.226 —
 see [USAGE.md](USAGE.md#installing-with-the-skills-cli) for what was and was not tested.
 
-[USAGE.md](USAGE.md) covers the rest: both install paths and what was actually tested, when each
+On Claude Code specifically, this repository is also its own plugin marketplace, which is the only
+route that installs both skills in one command with no symlink and no flag:
+
+```bash
+claude plugin marketplace add Chisanan232/requirement-zero
+claude plugin install requirement-zero@requirement-zero
+```
+
+The trade is the names: skills arrive as `requirement-zero:requirement-zero` and
+`requirement-zero:codebase-zero`, not the bare names the routes above give, so a `CLAUDE.md` that
+names a skill needs the namespaced form. Verified on Claude Code 2.1.226 —
+[USAGE.md](USAGE.md#claude-code-plugin-marketplace) has the tested command list and the costs.
+
+[USAGE.md](USAGE.md) covers the rest: all three install paths and what was actually tested, when each
 skill fires and when it must not, how to read each verdict, how they interact with your project's
 existing safety and compliance constraints, known failure modes, and which hosts this has actually
 been tested on. Most of its observed behaviour — the trigger and non-trigger runs, the failure
