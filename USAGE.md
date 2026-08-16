@@ -97,11 +97,18 @@ behaviour is version-dependent and was observed on one version only.
 v0.2 adds a second skill, [Codebase Zero](skills/codebase-zero/SKILL.md), which audits code that
 already exists. It lives at `skills/codebase-zero/SKILL.md` inside this repository.
 
-**A nested skill directory is not discovered.** This was tested, not assumed: with the repository
-cloned to a skills directory, an agent asked to list its available skills reported
-`requirement-zero` and did not report `codebase-zero`. Nesting a skill inside another skill's
-directory does not register it, and there is no warning — the skill is simply absent. So the clone
-alone gives you Requirement Zero only.
+**A nested skill directory is not discovered by the skills-directory scan.** This was tested, not
+assumed: with the repository cloned to a skills directory, an agent asked to list its available
+skills reported `requirement-zero` and did not report `codebase-zero` under that name. Nesting a
+skill inside another skill's directory does not register it there, and there is no warning — the
+skill is simply absent. The symlink below is what puts `codebase-zero` in the skills directory
+under its own bare name.
+
+Since this repository added `.claude-plugin/`, a clone is *also* loaded as a skills-directory
+plugin, which surfaces the nested skill as `requirement-zero:codebase-zero` — so a clone alone is
+no longer strictly Requirement Zero only. See [the route comparison
+below](#claude-code-plugin-marketplace). The symlink remains the documented route because it gives
+the bare name, which is what the rest of this document and any `CLAUDE.md` reference.
 
 To install both, add one symlink next to the clone:
 
