@@ -79,8 +79,8 @@ Claude Code 2.1.226, `claude --plugin-dir <clone>` loads the clone as an inline 
 session lists both skills, namespaced to the plugin: `requirement-zero:requirement-zero` and
 `requirement-zero:codebase-zero`. Both appear only because this repository now ships
 `.claude-plugin/plugin.json` declaring `"skills": ["./"]`. Delete that file and the same probe
-reports `codebase-zero` alone — the plugin loader scans `skills/` by default, which shadows the
-root `SKILL.md`. See [Claude Code plugin marketplace](#claude-code-plugin-marketplace) below.
+reports `<dir>:codebase-zero` alone, namespaced to the clone's directory name — the plugin loader
+scans `skills/` by default, which shadows the root `SKILL.md`. See [Claude Code plugin marketplace](#claude-code-plugin-marketplace) below.
 Two earlier notes here were wrong for this version: one claimed skills were not discovered via
 `--plugin-dir` at all, and one described the root skill as unavoidably shadowed.
 
