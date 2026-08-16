@@ -173,12 +173,15 @@ npx skills@1.5.22 add Chisanan232/requirement-zero --list              # Found 1
 npx skills@1.5.22 add Chisanan232/requirement-zero --list --full-depth # Found 2 skills
 ```
 
-So `--full-depth` is the difference between the CLI selecting one skill and selecting two. With it,
-the CLI reports `Found 2 skills` and installs both. It is **not** the difference between having
-Codebase Zero and not having it: since this repository added `.claude-plugin/`, the copied
+So `--full-depth` is the difference between the CLI selecting one skill and selecting two. With
+it, the CLI reports `Found 2 skills` and installs both. It is **not** the difference between
+having Codebase Zero and not having it: since this repository added `.claude-plugin/`, the copied
 `requirement-zero` directory is itself loaded as a plugin, and a global install *without*
 `--full-depth` still produced `requirement-zero:codebase-zero` alongside `requirement-zero` in a
-live probe. The flag governs the bare name, not availability.
+live probe. At global scope the flag therefore governs the bare name, not availability. At project
+scope it governs availability too, until the workspace is trusted: before that the plugin
+directory does not load, so without the flag a probe listed `requirement-zero` alone and Codebase
+Zero was absent under every name.
 
 Unlike the clone-plus-symlink route, the CLI **flattens** the pair: it writes
 `requirement-zero` and `codebase-zero` as sibling directories, so no symlink is needed and
@@ -194,8 +197,9 @@ load the same body; which of the two the agent picks was not observed. The cost 
 always-on description in the listing (`plugin details` puts the plugin's share at ~260 tok).
 Deleting `.claude-plugin/` from the installed `requirement-zero` directory removes the duplicate.
 Project scope behaves the same way once the workspace is trusted; before that, Claude Code refuses
-to load the plugin directory (`not loaded because this workspace was not trusted`) and only the
-two flattened names appear.
+to load the plugin directory (`not loaded because this workspace was not trusted`) and only what
+the CLI itself wrote appears — the two flattened names here, or `requirement-zero` alone if you
+left `--full-depth` off.
 
 Installing one skill rather than both is supported, by name:
 
