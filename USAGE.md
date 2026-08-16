@@ -322,9 +322,13 @@ the existing tags; a tag that does carry the manifests does not exist yet, so pi
 **NOT tested**.
 
 **Adding `.claude-plugin/` changes the plain clone route, and that is worth knowing before you
-install.** The clone-plus-symlink route is unaffected: the same probe still reported bare
-`requirement-zero` and `codebase-zero`. But a clone *without* the symlink now behaves differently
-than it did before this change. Measured in two fresh config directories against both revisions:
+install.** The clone-plus-symlink route keeps the names it always had: the same probe still
+reported bare `requirement-zero` and `codebase-zero`, and no third namespaced entry, because the
+symlink and its target resolve to one path and Claude Code loads such a target once. That route is
+not untouched, though — `claude plugin list` now shows `requirement-zero@skills-dir` there too,
+and `plugin details` reports `Skills (1) codebase-zero`, where before there was no plugin at all.
+But a clone *without* the symlink now behaves differently than it did before this change. Measured
+in two fresh config directories against both revisions:
 
 | Clone-only install | Skills the agent lists | `claude plugin list` |
 | --- | --- | --- |
