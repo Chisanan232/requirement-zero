@@ -265,8 +265,10 @@ skill:
 - No MCP server
 - No custom runtime, and no dependencies of any kind
 
-Installation is `git clone` into your skills directory. If that ever stops being true, the
-project has grown something it did not earn.
+The project's own installation is `git clone` into your skills directory. If that ever stops
+being true, the project has grown something it did not earn. (The third-party `skills` CLI above
+is a different thing: it installs this repository as-is, and the repository ships nothing to
+support it.)
 
 ## License
 
