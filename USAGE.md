@@ -133,6 +133,67 @@ above: ask the agent to list its skills, and expect both `requirement-zero` and 
 Tested on Claude Code 2.1.226 only. The nesting behaviour is a property of how the host discovers
 skills, so verify it yourself on another host rather than assuming it carries over.
 
+### Installing with the `skills` CLI
+
+The [`skills` CLI](https://github.com/vercel-labs/skills) installs skills from a GitHub
+repository. It works against this repository, but **only with `--full-depth`** — that flag is not
+optional here, and the reason is the same nesting described above.
+
+```bash
+npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code
+```
+
+Without `--full-depth` the CLI finds **one** skill. Its own documented rule is that "a `SKILL.md`
+discovered at a shallower level shadows anything nested below it", and this repository has
+`SKILL.md` at the root, so the root skill shadows `skills/codebase-zero/`. Listing without
+installing shows it directly:
+
+```bash
+npx skills@1.5.22 add Chisanan232/requirement-zero --list              # Found 1 skill
+npx skills@1.5.22 add Chisanan232/requirement-zero --list --full-depth # Found 2 skills
+```
+
+So `--full-depth` is the difference between getting Requirement Zero alone and getting both
+skills. With it, the CLI reports `Found 2 skills` and installs both.
+
+Unlike the clone-plus-symlink route, the CLI **flattens** the pair: it writes
+`requirement-zero` and `codebase-zero` as sibling directories, so no symlink is needed and
+Codebase Zero is discovered on its own name. `references/` and `examples/` come across intact.
+The nested `skills/codebase-zero/` copy still exists inside the `requirement-zero` directory and
+is still shadowed there — harmless, but it means the flattened sibling is what the agent loads.
+
+Installing one skill rather than both is supported, by name:
+
+```bash
+npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill codebase-zero --agent claude-code
+```
+
+That reported `Selected 1 skill: codebase-zero` and installed only that one.
+
+Two scopes were exercised. Project scope (the default) copies into `.claude/skills/` in the
+current directory. Global scope (`-g`) writes the files once to `~/.agents/skills/` and symlinks
+them into `~/.claude/skills/`; both symlinks resolved to a readable `SKILL.md`.
+
+**What was verified, and how.** Every command above was run against CLI version `1.5.22` with
+`DISABLE_TELEMETRY=1 DO_NOT_TRACK=1` set, into throwaway directories — never a real
+`~/.claude`. The project-scope install was then confirmed live: a `claude` session started in
+that directory with `CLAUDE_CONFIG_DIR` pointed at a throwaway config, asked to list its
+available skills, reported **both** `requirement-zero` and `codebase-zero`. That is actual
+discovery by the agent, not just files on disk.
+
+**What was not verified.** The CLI accepts `--agent codex` and, in the global install above,
+reported writing a `universal: Codex` entry to `~/.agents/skills/`. Only that file placement was
+observed. Codex was not installed in the test environment, so **no Codex session ever loaded
+these skills** — the Codex row remains untested, exactly as the [Compatibility](#compatibility)
+section says. Of the agents the CLI supports, only `claude-code` was exercised end to end.
+
+This repository is not listed in the skills.sh catalogue as of 2026-08-16: its public search API
+returned no entry for this owner or either skill name, and the owner does not appear in the
+site's owner sitemap. The CLI installs from the GitHub repository regardless — catalogue listing
+is not required for `npx skills add` to work. There is consequently no install-count data for
+this repository, and no badge is shown anywhere in this project, because there is no real number
+to source.
+
 ## Invoking it
 
 There are two paths, and the first is the normal one.
