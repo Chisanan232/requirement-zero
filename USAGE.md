@@ -160,7 +160,8 @@ Unlike the clone-plus-symlink route, the CLI **flattens** the pair: it writes
 `requirement-zero` and `codebase-zero` as sibling directories, so no symlink is needed and
 Codebase Zero is discovered on its own name. `references/` and `examples/` come across intact.
 The nested `skills/codebase-zero/` copy still exists inside the `requirement-zero` directory and
-is still shadowed there — harmless, but it means the flattened sibling is what the agent loads.
+is still shadowed there — harmless, and given the nesting result above the flattened sibling is
+necessarily what the agent loads.
 
 Installing one skill rather than both is supported, by name:
 
