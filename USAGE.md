@@ -244,13 +244,26 @@ from the bare `requirement-zero` and `codebase-zero` the clone route produces, s
 that names a skill explicitly needs the namespaced form under this route.
 
 Updates are `claude plugin marketplace update requirement-zero` followed by
-`claude plugin update requirement-zero@requirement-zero`, and take effect after a restart. The
-plugin carries no `version` field, so Claude Code derives a version from content — an install
-reported `Version: 72b6d6cbee05`, and after a change upstream the update reported
-`updated from 72b6d6cbee05 to 5bf4244deed1`. That means updates track the default branch and
-there is no version string to bump at release time. The cost is that
-`claude plugin validate . --strict` fails on a "No version specified" warning; plain
-`claude plugin validate .` passes with that one warning.
+`claude plugin update requirement-zero@requirement-zero`, and take effect after a restart.
+
+The plugin carries no `version` field. With none set, Claude Code
+[falls back to the git commit SHA of the plugin's source](https://code.claude.com/docs/en/plugins-reference#version-management),
+shortened to 12 characters — so **an update lands when a commit reaches the branch you installed
+from, not when a file changes.** Tested: installing from a clone at commit `b28d9d5` reported
+`Version: b28d9d59c67b`, exactly `git rev-parse --short=12 HEAD`. Editing a file *without*
+committing and then running both update commands reported `already at the latest version`;
+committing that same edit moved it to the new commit's SHA. Updates therefore track the default
+branch and there is no version string to bump at release time.
+
+Three costs come with that, and all three fall on users rather than on this repository:
+
+- `claude plugin validate . --strict` fails on the resulting "No version specified" warning; plain
+  `claude plugin validate .` passes with that one warning.
+- `claude plugin tag` cannot run: `No version to tag. Set "version" in .claude-plugin/plugin.json`.
+- **Nobody can pin a version**, and no other plugin can express a dependency constraint on this
+  one, because those need an explicit semver. Via this route you track the default branch or
+  nothing. The repository's own `v0.1.0` and `v0.2.0` git tags and GitHub releases are unaffected
+  and remain the way to reference a fixed version of the skills themselves.
 
 What was tested, on 2.1.226: `validate`, `marketplace add` from a local directory path,
 `plugin install`, `plugin details`, `marketplace update`, `plugin update`, and a live `-p`
