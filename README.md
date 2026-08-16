@@ -299,10 +299,13 @@ skill:
 - No MCP server
 - No custom runtime, and no dependencies of any kind
 
-The project's own installation is `git clone` into your skills directory. If that ever stops
-being true, the project has grown something it did not earn. (The third-party `skills` CLI above
-is a different thing: it installs this repository as-is, and the repository ships nothing to
-support it.)
+The project's own installation is `git clone` into your skills directory, and it stays the
+documented route. If a clone ever stops being enough, the project has grown something it did not
+earn. The two other routes are held to that same test. The third-party `skills` CLI needs nothing
+from this repository: it installs the tree as-is. The marketplace route is the one place this
+project does ship something to support an install — the two manifests in `.claude-plugin/`, 29
+lines that name the existing skill files rather than copying them, added because it is the only
+route that registers both skills as one plugin.
 
 ## License
 
