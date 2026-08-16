@@ -35,7 +35,9 @@ npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --ag
 ```
 
 `--full-depth` is required, not optional: without it the CLI finds only Requirement Zero, because
-the root `SKILL.md` shadows the nested one. Verified on CLI 1.5.22 with Claude Code 2.1.226 — see
+the root `SKILL.md` shadows the nested one. That command installs into the **current directory**
+(`./.claude/skills/`) and writes a `skills-lock.json` beside it, not into `~/.claude/skills/` — add
+`-g` for the personal location used above. Verified on CLI 1.5.22 with Claude Code 2.1.226 — see
 [USAGE.md](USAGE.md#installing-with-the-skills-cli) for what was and was not tested.
 
 [USAGE.md](USAGE.md) covers the rest: both install paths and what was actually tested, when each
