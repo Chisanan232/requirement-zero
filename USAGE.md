@@ -169,9 +169,16 @@ skills. With it, the CLI reports `Found 2 skills` and installs both.
 Unlike the clone-plus-symlink route, the CLI **flattens** the pair: it writes
 `requirement-zero` and `codebase-zero` as sibling directories, so no symlink is needed and
 Codebase Zero is discovered on its own name. `references/` and `examples/` come across intact.
-The nested `skills/codebase-zero/` copy still exists inside the `requirement-zero` directory and
-is still shadowed there — harmless, and given the nesting result above the flattened sibling is
-necessarily what the agent loads.
+The nested `skills/codebase-zero/` copy still exists inside the `requirement-zero` directory, and
+it is no longer inert. Because the CLI copies the whole repository tree, `.claude-plugin/` comes
+across too, so the installed `requirement-zero` directory is *also* loaded as a skills-directory
+plugin. At global scope a probe listed **three** entries: `requirement-zero`, `codebase-zero`, and
+`requirement-zero:codebase-zero` — Codebase Zero twice, once flattened and once namespaced through
+the plugin. Both resolve to the same file, so the behaviour is the same either way; the cost is a
+duplicate always-on description in the listing (`plugin details` puts the plugin's share at
+~260 tok). Deleting `.claude-plugin/` from the installed `requirement-zero` directory removes the
+duplicate. Under *project* scope the plugin did not load at all in testing, because the untrusted
+workspace blocked the scan, so only the two flattened names appeared there.
 
 Installing one skill rather than both is supported, by name:
 
