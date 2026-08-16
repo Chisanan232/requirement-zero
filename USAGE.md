@@ -248,9 +248,10 @@ throwaway skill added to tell the cases apart:
   `plugin.json` at `["./"]` and the entry narrowed to one subdirectory, only that subdirectory's
   skill loaded and `codebase-zero` was dropped. Narrowing `plugin.json`'s own `skills` does *not*
   do this — the default scan still ran and `codebase-zero` survived.
-- **`"./"` in `plugin.json` is still required.** Removing the field altogether, from both files,
-  drops the marketplace route back to `Skills (1) codebase-zero` — the root `SKILL.md` is only
-  picked up because `"./"` is listed.
+- **`"./"` in `plugin.json` is still required.** Deleting the whole file is not the only way to lose
+  the root skill: keeping `plugin.json` but removing just its `skills` key — with no `skills` on the
+  entry either — lands in the same place as having no manifest at all, `Skills (1) codebase-zero`.
+  The root `SKILL.md` is picked up only because `"./"` is listed.
 
 To install:
 
