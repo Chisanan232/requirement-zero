@@ -170,9 +170,14 @@ npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill codebase
 
 That reported `Selected 1 skill: codebase-zero` and installed only that one.
 
-Two scopes were exercised. Project scope (the default) copies into `.claude/skills/` in the
-current directory. Global scope (`-g`) writes the files once to `~/.agents/skills/` and symlinks
-them into `~/.claude/skills/`; both symlinks resolved to a readable `SKILL.md`.
+Two scopes were exercised. Project scope copies into `.claude/skills/` in the current directory;
+it is the first option at the CLI's interactive scope prompt rather than a silent default, so
+either answer the prompt or pass `-y` as the commands above do. Global scope (`-g`) with
+`--agent claude-code` alone also **copies**, straight into `~/.claude/skills/` — no
+`~/.agents/skills/` directory is created and no symlink is made. The `~/.agents/skills/` layout
+with symlinks into `~/.claude/skills/` appears only when a universal-directory agent is also
+targeted; adding `--agent codex` produced exactly that, and both symlinks resolved to a readable
+`SKILL.md`.
 
 **What was verified, and how.** Every command above was run against CLI version `1.5.22` with
 `DISABLE_TELEMETRY=1 DO_NOT_TRACK=1` set, into throwaway directories — never a real
@@ -181,8 +186,9 @@ that directory with `CLAUDE_CONFIG_DIR` pointed at a throwaway config, asked to 
 available skills, reported **both** `requirement-zero` and `codebase-zero`. That is actual
 discovery by the agent, not just files on disk.
 
-**What was not verified.** The CLI accepts `--agent codex` and, in the global install above,
-reported writing a `universal: Codex` entry to `~/.agents/skills/`. Only that file placement was
+**What was not verified.** The CLI accepts `--agent codex`, and the separate run that added
+`--agent codex -g` reported writing a `universal: Codex` entry to
+`~/.agents/skills/`. Only that file placement was
 observed. Codex was not installed in the test environment, so **no Codex session ever loaded
 these skills** — the Codex row remains untested, exactly as the [Compatibility](#compatibility)
 section says. Of the agents the CLI supports, only `claude-code` was exercised end to end.
