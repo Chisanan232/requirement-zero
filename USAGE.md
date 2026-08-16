@@ -76,13 +76,13 @@ is the one used to verify the install path in this document.
 
 `--plugin-dir` is not the install path this document recommends, but it is not inert either. On
 Claude Code 2.1.226, `claude --plugin-dir <clone>` loads the clone as an inline plugin and a live
-session lists `<dir>:codebase-zero` — the nested skill, namespaced to the directory — while the root
-`SKILL.md` is shadowed and `requirement-zero` is absent. Remove `skills/` and the same probe reports
-`requirement-zero` instead. So the flag gives you whatever is under `skills/` — here, Codebase Zero
-alone — under a plugin namespace, and shadows the root `SKILL.md`, rather than the pair under their
-own names. That is why the symlink below is the documented route. An earlier note here
-claimed skills were not discovered via `--plugin-dir` at all; that was tested against an earlier CLI
-and is wrong for this version.
+session lists both skills, namespaced to the plugin: `requirement-zero:requirement-zero` and
+`requirement-zero:codebase-zero`. Both appear only because this repository now ships
+`.claude-plugin/plugin.json` declaring `"skills": ["./"]`. Delete that file and the same probe
+reports `codebase-zero` alone — the plugin loader scans `skills/` by default, which shadows the
+root `SKILL.md`. See [Claude Code plugin marketplace](#claude-code-plugin-marketplace) below.
+Two earlier notes here were wrong for this version: one claimed skills were not discovered via
+`--plugin-dir` at all, and one described the root skill as unavoidably shadowed.
 
 Setting `CLAUDE_CONFIG_DIR` *does* relocate discovery on Claude Code 2.1.226: a skill under
 `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` is listed by the agent. An earlier note here said it did
@@ -211,6 +211,59 @@ site's owner sitemap. The CLI installs from the GitHub repository regardless —
 is not required for `npx skills add` to work. There is consequently no install-count data for
 this repository, and no badge is shown anywhere in this project, because there is no real number
 to source.
+
+### Claude Code plugin marketplace
+
+This repository is also its own Claude Code plugin marketplace. This is a Claude-Code-only path —
+it is not part of the Agent Skills standard, and the clone-plus-symlink route above remains
+supported and is what other hosts use.
+
+Two files carry it, both small and both under `.claude-plugin/`: a `marketplace.json` with one
+plugin entry whose `source` is `"./"`, and a `plugin.json` declaring `"skills": ["./"]`. Neither
+duplicates any skill text. `SKILL.md` and `skills/codebase-zero/SKILL.md` stay canonical where
+they are; the manifests only point at them.
+
+The `plugin.json` is what makes the pair visible. A plugin's skills load from `skills/` by
+default, and that default scan alone finds `codebase-zero` and silently shadows the root
+`SKILL.md`. Claude Code
+[documents `skills` as adding to the default scan](https://code.claude.com/docs/en/plugins-reference#path-behavior-rules)
+rather than replacing it, so listing `"./"` picks up the root skill as well. Measured on 2.1.226:
+`claude plugin details requirement-zero` reports `Skills (1) codebase-zero` with `plugin.json`
+removed, and `Skills (2) codebase-zero, requirement-zero` with it present.
+
+To install:
+
+```bash
+claude plugin marketplace add Chisanan232/requirement-zero
+claude plugin install requirement-zero@requirement-zero
+```
+
+Both skills arrive namespaced to the plugin. A live session asked to list its skills reported
+`requirement-zero:requirement-zero` and `requirement-zero:codebase-zero` — note that these differ
+from the bare `requirement-zero` and `codebase-zero` the clone route produces, so a `CLAUDE.md`
+that names a skill explicitly needs the namespaced form under this route.
+
+Updates are `claude plugin marketplace update requirement-zero` followed by
+`claude plugin update requirement-zero@requirement-zero`, and take effect after a restart. The
+plugin carries no `version` field, so Claude Code derives a version from content — an install
+reported `Version: 72b6d6cbee05`, and after a change upstream the update reported
+`updated from 72b6d6cbee05 to 5bf4244deed1`. That means updates track the default branch and
+there is no version string to bump at release time. The cost is that
+`claude plugin validate . --strict` fails on a "No version specified" warning; plain
+`claude plugin validate .` passes with that one warning.
+
+What was tested, on 2.1.226: `validate`, `marketplace add` from a local directory path,
+`plugin install`, `plugin details`, `marketplace update`, `plugin update`, and a live `-p`
+discovery probe, all under a throwaway `CLAUDE_CONFIG_DIR`. Adding `.claude-plugin/` was also
+checked against the clone route and does not disturb it — the same probe still reported bare
+`requirement-zero` and `codebase-zero`.
+
+What was **NOT** tested: `claude plugin marketplace add Chisanan232/requirement-zero` against the
+published GitHub repository. The command above is the documented GitHub-shorthand form, but these
+manifests reach `main` only when this change merges, and the shorthand resolves against the
+default branch. Run it and check `claude plugin marketplace list` before trusting it. Local
+bare-git sources were rejected outright (`Invalid marketplace source format`), so a local clone is
+not a substitute for that check.
 
 ## Invoking it
 
