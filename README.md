@@ -51,8 +51,9 @@ happens once you have trusted the workspace.) That command installs into the **c
 add `-g` for the personal location used above. Verified on CLI 1.5.22 with Claude Code 2.1.226 —
 see [USAGE.md](USAGE.md#installing-with-the-skills-cli) for what was and was not tested.
 
-On Claude Code specifically, this repository is also its own plugin marketplace, which is the only
-route that installs both skills in one command with no symlink and no flag:
+On Claude Code specifically, this repository is also its own plugin marketplace — the route that
+registers both skills through the plugin itself rather than through the skills-directory scan, so
+neither a symlink nor a flag is involved:
 
 ```bash
 claude plugin marketplace add Chisanan232/requirement-zero
