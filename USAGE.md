@@ -179,10 +179,11 @@ it is no longer inert. Because the CLI copies the whole repository tree, `.claud
 across too, so the installed `requirement-zero` directory is *also* loaded as a skills-directory
 plugin. At global scope a probe listed **three** entries: `requirement-zero`, `codebase-zero`, and
 `requirement-zero:codebase-zero` — Codebase Zero twice, once flattened and once namespaced through
-the plugin. Both resolve to the same file, so the behaviour is the same either way; the cost is a
-duplicate always-on description in the listing (`plugin details` puts the plugin's share at
-~260 tok). Deleting `.claude-plugin/` from the installed `requirement-zero` directory removes the
-duplicate. Under *project* scope the plugin did not load at all in testing, because the untrusted
+the plugin. Those are two separate copies of the file, not one — different inodes, and `realpath`
+resolves each to itself — so they can drift apart if you edit one. As long as they match, the
+behaviour is the same whichever fires; the cost is a duplicate always-on description in the listing
+(`plugin details` puts the plugin's share at ~260 tok). Deleting `.claude-plugin/` from the
+installed `requirement-zero` directory removes the duplicate. Under *project* scope the plugin did not load at all in testing, because the untrusted
 workspace blocked the scan, so only the two flattened names appeared there.
 
 Installing one skill rather than both is supported, by name:
