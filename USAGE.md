@@ -42,9 +42,12 @@ Removing it is deleting that directory. Nothing else on your system was touched.
 
 Claude Code also documents project-scoped skills in `.claude/skills/` inside a repository, which
 is the usual choice when you want the skill committed alongside a codebase so everyone working in
-it gets the same behaviour. This project did not test that location: every result in this document
-was produced against the **personal** location (`~/.claude/skills/`). Treat it as untested and
-confirm discovery yourself with the check below before relying on it.
+it gets the same behaviour. Every result in the *clone-based* sections of this document was produced
+against the **personal** location (`~/.claude/skills/`), so treat the `git clone` and symlink routes
+below as untested at the project location and confirm discovery yourself with the check below. The
+one project-scoped install that *was* tested end to end is the `skills` CLI route — see
+[Installing with the `skills` CLI](#installing-with-the-skills-cli), where a project-scope install
+was confirmed by live agent discovery.
 
 One thing to get right if you do. A plain `git clone` into `.claude/skills/requirement-zero`
 leaves a nested git repository, which your project records as a gitlink rather than as committed
