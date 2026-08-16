@@ -179,6 +179,10 @@ with symlinks into `~/.claude/skills/` appears only when a universal-directory a
 targeted; adding `--agent codex` produced exactly that, and both symlinks resolved to a readable
 `SKILL.md`.
 
+**Telemetry.** The CLI reports installs to its own upstream by default; set `DISABLE_TELEMETRY=1`
+or `DO_NOT_TRACK=1` to opt out. That is the CLI's behaviour, not this project's — nothing here
+collects anything.
+
 **What was verified, and how.** Every command above was run against CLI version `1.5.22` with
 `DISABLE_TELEMETRY=1 DO_NOT_TRACK=1` set, into throwaway directories — never a real
 `~/.claude`. The project-scope install was then confirmed live: a `claude` session started in
