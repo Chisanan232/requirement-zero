@@ -262,10 +262,15 @@ script.
 
 ## Status
 
-v0.2. Requirement Zero is unchanged and settled: verdict set, ordered discipline, references,
-examples, evaluation. Codebase Zero is new in this version — the skill, three references, seven
-worked audits, a differentiation document, and a seven-case evaluation are all in the tree and
-usable.
+[v0.2.0](https://github.com/Chisanan232/requirement-zero/releases/tag/v0.2.0) is the current
+release; [v0.1.0](https://github.com/Chisanan232/requirement-zero/releases/tag/v0.1.0) is the
+Requirement-Zero-only state before it. Requirement Zero is unchanged and settled: verdict set,
+ordered discipline, references, examples, evaluation. Codebase Zero is new in this version — the
+skill, three references, seven worked audits, a differentiation document, and a seven-case
+evaluation are all in the tree and usable.
+
+Neither tag contains `.claude-plugin/`, which landed after both were cut, so the marketplace route
+above installs from the default branch until the next release.
 
 Tested on Claude Code 2.1.226. Not tested on Codex or any other Agent Skills-compatible host — see
 [USAGE.md](USAGE.md#compatibility) for exactly what was and was not run, and what verifying
