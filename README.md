@@ -255,6 +255,8 @@ another host would take.
 - `skills/codebase-zero/` — Codebase Zero: the skill, three references, seven worked audits, and a
   document stating where it overlaps with existing tools and when to use those instead
 - `eval/` — one harness with two profiles, thirteen adversarial cases in total, and published runs
+- `.claude-plugin/` — two small manifests that let Claude Code install this repository as a plugin,
+  pointing at the skill files above rather than copying them
 - `USAGE.md` — installation for both skills, triggers and non-triggers, verdicts, safety boundaries,
   failure modes, compatibility
 
