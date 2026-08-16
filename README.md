@@ -28,7 +28,7 @@ The agent then invokes either skill on its own when a request matches, or you ca
 name.
 
 Or install both with the [`skills` CLI](https://github.com/vercel-labs/skills), which flattens the
-pair into siblings so no symlink is needed:
+pair into siblings so no symlink is needed for this Claude-Code-only target:
 
 ```bash
 npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --agent claude-code -y
