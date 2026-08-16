@@ -38,9 +38,10 @@ npx skills@1.5.22 add Chisanan232/requirement-zero --full-depth --skill '*' --ag
 ```
 
 `--full-depth` is what gets Codebase Zero installed under its own bare name: without it the CLI
-finds only Requirement Zero, because the root `SKILL.md` shadows the nested one. (Codebase Zero
-still reaches the agent either way, as `requirement-zero:codebase-zero`, because the copied tree
-includes `.claude-plugin/`.) That command installs into the **current directory**
+finds only Requirement Zero, because the root `SKILL.md` shadows the nested one. (At the personal
+location, Codebase Zero still reaches the agent either way, as `requirement-zero:codebase-zero`,
+because the copied tree includes `.claude-plugin/`. At the project location below, that only happens
+once you have trusted the workspace.) That command installs into the **current directory**
 (`./.claude/skills/`) and writes a `skills-lock.json` beside it, not into `~/.claude/skills/` — add
 `-g` for the personal location used above. Verified on CLI 1.5.22 with Claude Code 2.1.226 — see
 [USAGE.md](USAGE.md#installing-with-the-skills-cli) for what was and was not tested.
