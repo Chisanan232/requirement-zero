@@ -177,7 +177,8 @@ That reported `Selected 1 skill: codebase-zero` and installed only that one.
 Two scopes were exercised. Project scope copies into `.claude/skills/` in the current directory
 and also writes a `skills-lock.json` at the directory root, which you may want to gitignore. It is
 the first option at the CLI's interactive scope prompt rather than a silent default: the `-y` on
-the commands above takes that default without prompting, and dropping `-y` gives you the prompt. Global scope (`-g`) with
+the commands above takes that default without prompting, and dropping `-y` gives you the prompt.
+Global scope (`-g`) with
 `--agent claude-code` alone also **copies**, straight into `~/.claude/skills/` — no
 `~/.agents/skills/` directory is created and no symlink is made. The `~/.agents/skills/` layout
 with symlinks into `~/.claude/skills/` appears only when a universal-directory agent is also
@@ -199,7 +200,8 @@ discovery by the agent, not just files on disk.
 `--agent claude-code --agent codex -g` reported writing a `universal: Codex` entry to
 `~/.agents/skills/`. That two-agent form is what produces the label: `--agent codex -g` on its own
 reports `copy → Codex` into `~/.agents/skills/` and prints no `universal:` line at all, because a
-single target directory forces copy mode. Only that file placement was observed. Codex was not installed in the test environment, so **no Codex session ever loaded
+single target directory forces copy mode. Only that file placement was observed. Codex was not
+installed in the test environment, so **no Codex session ever loaded
 these skills** — the Codex row remains untested, exactly as the [Compatibility](#compatibility)
 section says. Of the agents the CLI supports, only `claude-code` was exercised end to end.
 
