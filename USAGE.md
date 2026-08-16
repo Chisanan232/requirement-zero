@@ -324,11 +324,13 @@ context you did not explicitly ask for. If you want Requirement Zero alone, dele
 **not** an alternative: it copies the whole repository tree including `.claude-plugin/`, and a probe
 after that install still listed `requirement-zero:codebase-zero`.
 
-The GitHub shorthand *was* tested, but only in its `@<ref>` form: adding
+The GitHub shorthand *was* tested, but only in its `@<branch>` form: adding
 `Chisanan232/requirement-zero@<branch>` cloned over HTTPS, validated, installed, reported
-`Skills (2)`, and a live probe listed both namespaced skills. What was **NOT** tested is the bare
-form printed above — `claude plugin marketplace add Chisanan232/requirement-zero` — because it
-resolves against the default branch, and these manifests reach `main` only when this change merges.
+`Skills (2)`, and a live probe listed both namespaced skills. Two forms were **NOT** tested. One is
+the bare form printed above — `claude plugin marketplace add Chisanan232/requirement-zero` —
+because it resolves against the default branch, and these manifests reach `main` only when this
+change merges. The other is `@<tag>` pinning, for the reason given above: no tag carrying the
+manifests exists yet.
 Run it and check `claude plugin marketplace list` before trusting it. A local *bare* git repository
 is not a substitute: a plain path to one fails with `Marketplace file not found at
 <path>/.claude-plugin/marketplace.json`, and the `file://` form is rejected with
