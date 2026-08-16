@@ -136,10 +136,17 @@ Copying works equally well if you would rather not use a symlink:
 cp -R ~/.claude/skills/requirement-zero/skills/codebase-zero ~/.claude/skills/codebase-zero
 ```
 
-The trade is that `git pull` no longer updates the copy — you recopy after each update.
+The trade is that `git pull` no longer updates the copy — you recopy after each update. There is a
+second difference now that `.claude-plugin/` exists: unlike the symlink, the copy is a second real
+directory, so it does not resolve to the same path as the clone's own nested copy. Both load, and a
+probe listed a third entry `requirement-zero:codebase-zero` alongside the two bare names — the same
+duplicate the `skills` CLI route produces, described
+[below](#installing-with-the-skills-cli), and removed the same way, by deleting `.claude-plugin/`
+from the clone.
 
 Removing either skill is deleting its directory or symlink. Confirm the install the same way as
-above: ask the agent to list its skills, and expect both `requirement-zero` and `codebase-zero`.
+above: ask the agent to list its skills, and expect both `requirement-zero` and `codebase-zero` —
+plus `requirement-zero:codebase-zero` if you copied rather than symlinked.
 
 Tested on Claude Code 2.1.226 only. The nesting behaviour is a property of how the host discovers
 skills, so verify it yourself on another host rather than assuming it carries over.
