@@ -665,12 +665,14 @@ suppresses skill discovery, so the skill is simply not found. The flag is the on
 which is what makes this one confusing to debug. Drop it.
 
 If it still does not load, check whether you reached for `--plugin-dir <clone>`. That flag does load
-a skill, but not the one you asked for under the name you expect: on 2.1.226 it surfaces
-`<dir>:codebase-zero` and shadows the root `requirement-zero` entirely. Confirm the file is at
-`~/.claude/skills/requirement-zero/SKILL.md` and ask the agent to list its skills.
+both skills on 2.1.226, but under plugin-namespaced names — `requirement-zero:requirement-zero` and
+`requirement-zero:codebase-zero` — so a check that greps for a bare name finds nothing. Confirm the
+file is at `~/.claude/skills/requirement-zero/SKILL.md` and ask the agent to list its skills.
 
-If you are looking for `codebase-zero` specifically and only `requirement-zero` appears, the cause
-is nesting: a skill directory inside another skill's directory is not discovered, silently. See
+If you are looking for `codebase-zero` specifically and nothing resembling it appears, the cause is
+nesting: a skill directory inside another skill's directory is not discovered by the
+skills-directory scan under its own bare name. Note that a plain clone now also loads as a
+skills-directory plugin, which surfaces it as `requirement-zero:codebase-zero` — see
 [Installing Codebase Zero](#installing-codebase-zero-the-sibling-skill).
 
 ### A headless run returns nothing
