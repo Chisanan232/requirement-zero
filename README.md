@@ -20,9 +20,11 @@ ln -s ~/.claude/skills/requirement-zero/skills/codebase-zero ~/.claude/skills/co
 
 The first line installs Requirement Zero: the repository root *is* the skill directory — `SKILL.md`
 is at the top level — so there is nothing to build or configure, and updating is `git pull`. The
-second line installs Codebase Zero, and it is needed because a skill nested inside another skill's
-directory is **not** discovered — tested, not assumed. The symlink points into the clone, so
-`git pull` still updates both.
+second line installs Codebase Zero under its own bare name, and it is needed because a skill nested
+inside another skill's directory is **not** discovered by the skills-directory scan — tested, not
+assumed. The symlink points into the clone, so `git pull` still updates both. (A clone alone is now
+also loaded as a plugin, which surfaces the second skill as `requirement-zero:codebase-zero`;
+[USAGE.md](USAGE.md#claude-code-plugin-marketplace) compares the routes.)
 
 The agent then invokes either skill on its own when a request matches, or you can ask for one by
 name.
