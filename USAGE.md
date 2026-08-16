@@ -306,12 +306,16 @@ than it did before this change. Measured in two fresh config directories against
 | before this change | `requirement-zero` only | `No plugins installed.` |
 | with `.claude-plugin/` | `requirement-zero` **and** `requirement-zero:codebase-zero` | loaded as `requirement-zero@skills-dir` |
 
-A clone dropped into a skills directory is now also picked up as a skills-directory plugin, and
-that plugin's manifest declares both skills. The practical effect is that the symlink is no longer
-required to get Codebase Zero — but the second skill arrives under the namespaced name
-`requirement-zero:codebase-zero`, and it is always-on context you did not explicitly ask for. If
-you want Requirement Zero alone, delete `.claude-plugin/` from your clone or use `--skill
-requirement-zero` with the `skills` CLI.
+A clone dropped into a skills directory is now also picked up as a skills-directory plugin, which
+contributes `codebase-zero` via that plugin's own `skills/` scan — `claude plugin details
+requirement-zero` reports `Skills (1) codebase-zero` for this route, not two, because the root skill
+still arrives the old way through the skills-directory scan rather than through the plugin. The
+practical effect is that the symlink is no longer required to get Codebase Zero — but the second
+skill arrives under the namespaced name `requirement-zero:codebase-zero`, and it is always-on
+context you did not explicitly ask for. If you want Requirement Zero alone, delete
+`.claude-plugin/` from your clone. Note that `--skill requirement-zero` with the `skills` CLI is
+**not** an alternative: it copies the whole repository tree including `.claude-plugin/`, and a probe
+after that install still listed `requirement-zero:codebase-zero`.
 
 What was **NOT** tested: `claude plugin marketplace add Chisanan232/requirement-zero` against the
 published GitHub repository. The command above is the documented GitHub-shorthand form, but these
