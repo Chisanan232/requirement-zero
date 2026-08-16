@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "requirement-zero",
+  "description": "Scope-discipline skills for Claude Code: decide whether a requirement should exist, and whether existing code still should.",
+  "owner": {
+    "name": "Chisanan232",
+    "url": "https://github.com/Chisanan232"
+  },
+  "plugins": [
+    {
+      "name": "requirement-zero",
+      "source": "./",
+      "description": "Two scope-discipline skills: requirement-zero challenges whether a requirement deserves to exist before it is built; codebase-zero audits whether an artifact that already exists still deserves to."
+    }
+  ]
+}
