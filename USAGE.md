@@ -183,8 +183,9 @@ the plugin. Those are two separate copies of the file, not one — different ino
 resolves each to itself — so they can drift apart if you edit one. As long as they match, the
 behaviour is the same whichever fires; the cost is a duplicate always-on description in the listing
 (`plugin details` puts the plugin's share at ~260 tok). Deleting `.claude-plugin/` from the
-installed `requirement-zero` directory removes the duplicate. Under *project* scope the plugin did not load at all in testing, because the untrusted
-workspace blocked the scan, so only the two flattened names appeared there.
+installed `requirement-zero` directory removes the duplicate. Project scope behaves the same way
+once the workspace is trusted; before that, Claude Code refuses to load the plugin directory
+(`not loaded because this workspace was not trusted`) and only the two flattened names appear.
 
 Installing one skill rather than both is supported, by name:
 
