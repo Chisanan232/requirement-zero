@@ -1,5 +1,7 @@
 # Requirement Zero
 
+[![release](https://img.shields.io/github/v/release/Chisanan232/requirement-zero)](https://github.com/Chisanan232/requirement-zero/releases)
+
 **Every requirement must earn its right to exist.**
 
 Before Requirement #1 comes Requirement #0: prove that the requirement deserves to exist.
