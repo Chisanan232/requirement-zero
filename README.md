@@ -12,9 +12,9 @@ cheap to answer. **Requirement Zero** challenges a requirement *before* the agen
 code. **[Codebase Zero](skills/codebase-zero/SKILL.md)** audits an artifact that already exists and
 asks whether it still deserves to — see [that section](#codebase-zero) below.
 
-Both are Markdown files. There is no package, server, or runtime: installing them is a `git clone`,
-and each has a published evaluation run whose results, including where they show no measurable
-effect, are summarised below.
+Both are Markdown files. There is no package, server, or runtime — every install route below just
+puts those files where the agent looks. Each skill has a published evaluation run whose results,
+including where they show no measurable effect, are summarised below.
 
 ## Install
 
