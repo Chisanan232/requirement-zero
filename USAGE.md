@@ -265,18 +265,24 @@ shortened to 12 characters — so **an update lands when a commit reaches the br
 from, not when a file changes.** Tested: installing from a clone at commit `b28d9d5` reported
 `Version: b28d9d59c67b`, exactly `git rev-parse --short=12 HEAD`. Editing a file *without*
 committing and then running both update commands reported `already at the latest version`;
-committing that same edit moved it to the new commit's SHA. Updates therefore track the default
-branch and there is no version string to bump at release time.
+committing that same edit moved it to the new commit's SHA. Updates therefore track whichever ref
+the marketplace was added at — the default branch unless you named one — and there is no version
+string to bump at release time.
 
 Three costs come with that, and all three fall on users rather than on this repository:
 
 - `claude plugin validate . --strict` fails on the resulting "No version specified" warning; plain
   `claude plugin validate .` passes with that one warning.
 - `claude plugin tag` cannot run: `No version to tag. Set "version" in .claude-plugin/plugin.json`.
-- **Nobody can pin a version**, and no other plugin can express a dependency constraint on this
-  one, because those need an explicit semver. Via this route you track the default branch or
-  nothing. The repository's own `v0.1.0` and `v0.2.0` git tags and GitHub releases are unaffected
-  and remain the way to reference a fixed version of the skills themselves.
+- **No semver exists to depend on.** No other plugin can express a dependency constraint on this
+  one (`"dependencies": {"requirement-zero": "~0.2.0"}`), because that needs an explicit version
+  string. You *can* still pin what you install: the GitHub shorthand accepts a ref, so
+  `claude plugin marketplace add Chisanan232/requirement-zero@v0.2.0` holds the marketplace at that
+  tag instead of following the default branch — tested against a branch ref, where `plugin update`
+  reported `already at the latest version` rather than moving. What you cannot do is pin by
+  *release name*: the version reported is always the commit SHA. The repository's own `v0.1.0` and
+  `v0.2.0` git tags and GitHub releases remain the way to reference a fixed version of the skills
+  themselves, and via `@<tag>` they now also pin this route.
 
 What was tested, on 2.1.226: `validate`, `marketplace add` from a local directory path,
 `plugin install`, `plugin details`, `marketplace update`, `plugin update`, and a live `-p`
