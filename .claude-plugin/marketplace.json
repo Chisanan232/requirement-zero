@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "requirement-zero",
   "description": "Scope-discipline skills for Claude Code: decide whether a requirement should exist, and whether existing code still should.",
   "owner": {
