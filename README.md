@@ -278,6 +278,15 @@ Tested on Claude Code 2.1.226. Not tested on Codex or any other Agent Skills-com
 [USAGE.md](USAGE.md#compatibility) for exactly what was and was not run, and what verifying
 another host would take.
 
+### Public surface
+
+Repository-only, by design — no GitHub Pages site. This project ships two Markdown files that an
+agent host reads directly from the repo (see Install above); there is no package, server, or
+runtime, and no content here is meant to be browsed as a rendered web page rather than read as
+Markdown. GitHub's own rendering of this README already serves a human reader; a Pages deployment
+would duplicate that for no one. Revisit only if the project grows user-facing content a static
+site would genuinely serve better than the repo itself.
+
 ## What is in the tree
 
 - `SKILL.md` — Requirement Zero, deliberately compact
