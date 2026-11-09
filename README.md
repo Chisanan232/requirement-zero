@@ -317,6 +317,10 @@ project does ship something to support an install — the two manifests in `.cla
 lines that name the existing skill files rather than copying them, added because it is the only
 route that registers both skills as one plugin.
 
+## Support Development
+
+This project is free and open source. If it is useful to you and you would like to, you can voluntarily support its development on [Ko-fi](https://ko-fi.com/chisanan232). Support is entirely optional and does not come with priority support or other benefits.
+
 ## License
 
 [MIT](LICENSE)
